@@ -13,6 +13,14 @@ pub enum AnchorStyle {
     CornerBrackets,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Language {
+    #[serde(rename = "zh")]
+    Zh,
+    #[serde(rename = "en")]
+    En,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OverlaySettings {
@@ -28,6 +36,8 @@ pub struct OverlaySettings {
     pub backdrop: f32,
     #[serde(default)]
     pub offset_y: i16,
+    #[serde(default = "default_language")]
+    pub language: Language,
 }
 
 impl Default for OverlaySettings {
@@ -42,6 +52,7 @@ impl Default for OverlaySettings {
             glow: 0.42,
             backdrop: 0.0,
             offset_y: 0,
+            language: Language::Zh,
         }
     }
 }
@@ -92,6 +103,10 @@ fn default_glow() -> f32 {
     0.42
 }
 
+fn default_language() -> Language {
+    Language::Zh
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -109,6 +124,7 @@ mod tests {
         assert_eq!(settings.glow, 0.42);
         assert_eq!(settings.backdrop, 0.0);
         assert_eq!(settings.offset_y, 0);
+        assert_eq!(settings.language, Language::Zh);
     }
 
     #[test]
@@ -123,6 +139,7 @@ mod tests {
             glow: 9.0,
             backdrop: 9.0,
             offset_y: 999,
+            language: Language::Zh,
         }
         .validated()
         .expect("settings should be valid after numeric clamping");
@@ -157,6 +174,7 @@ mod tests {
             glow: 0.6,
             backdrop: 0.2,
             offset_y: -80,
+            language: Language::En,
         };
 
         let json = serde_json::to_string(&settings).expect("serialize settings");
@@ -181,6 +199,7 @@ mod tests {
         assert_eq!(decoded.glow, 0.42);
         assert_eq!(decoded.backdrop, 0.0);
         assert_eq!(decoded.offset_y, 0);
+        assert_eq!(decoded.language, Language::Zh);
     }
 
     #[test]

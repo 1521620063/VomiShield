@@ -3,13 +3,14 @@ import { patchSettings, type OverlaySettings } from './settings'
 export const SETTINGS_SAVE_DEBOUNCE_MS = 120
 
 type TimerId = ReturnType<typeof globalThis.setTimeout>
+export type SettingsCommitStatus = 'editing' | 'saving' | 'saved'
 
 type SettingsCommitterOptions = {
   initialSettings: OverlaySettings
   applySettings: (settings: OverlaySettings) => void
   previewSettings: (settings: OverlaySettings) => Promise<void> | void
   saveSettings: (settings: OverlaySettings) => Promise<OverlaySettings>
-  onStatus: (status: string) => void
+  onStatus: (status: SettingsCommitStatus) => void
   onError: (error: unknown) => void
   debounceMs?: number
   setTimeoutFn?: typeof globalThis.setTimeout
@@ -47,14 +48,14 @@ export function createSettingsCommitter({
 
     saveTimer = setTimeoutFn(() => {
       saveTimer = undefined
-      onStatus('Saving...')
+      onStatus('saving')
 
       void saveSettings(settings)
         .then((savedSettings) => {
           if (saveRevision === revision) {
             hasLocalEdit = false
             applyCurrentSettings(savedSettings)
-            onStatus('Saved')
+            onStatus('saved')
           }
         })
         .catch((error) => {
@@ -71,7 +72,7 @@ export function createSettingsCommitter({
       const nextSettings = patchSettings(currentSettings, patch)
       hasLocalEdit = true
       applyCurrentSettings(nextSettings)
-      onStatus('Editing...')
+      onStatus('editing')
       void Promise.resolve(previewSettings(nextSettings)).catch(onError)
       scheduleSave(nextSettings)
     },

@@ -5,11 +5,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use settings::{load_from_path, save_to_path, OverlaySettings};
+use settings::{load_from_path, save_to_path, Language, OverlaySettings};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
-    Emitter, Manager, State,
+    Emitter, Manager, State, Wry,
 };
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
@@ -18,6 +18,19 @@ const SETTINGS_CHANGED_EVENT: &str = "settings-changed";
 struct AppState {
     settings: Arc<Mutex<OverlaySettings>>,
     settings_path: PathBuf,
+    tray_menu_items: TrayMenuItems,
+}
+
+struct TrayMenuItems {
+    show_settings: MenuItem<Wry>,
+    toggle_overlay: MenuItem<Wry>,
+    quit: MenuItem<Wry>,
+}
+
+struct TrayLabels {
+    show_settings: &'static str,
+    toggle_overlay: &'static str,
+    quit: &'static str,
 }
 
 #[tauri::command]
@@ -66,6 +79,7 @@ fn persist_and_apply(
 
     save_to_path(&state.settings_path, &settings)?;
     apply_overlay_visibility(app, settings.enabled);
+    apply_tray_language(app, settings.language);
     app.emit(SETTINGS_CHANGED_EVENT, &settings)
         .map_err(|error| error.to_string())?;
 
@@ -104,10 +118,23 @@ fn show_main_window(app: &tauri::AppHandle) {
     }
 }
 
-fn create_tray(app: &tauri::App) -> tauri::Result<()> {
-    let show = MenuItem::with_id(app, "show-settings", "Show Settings", true, None::<&str>)?;
-    let toggle = MenuItem::with_id(app, "toggle-overlay", "Toggle Overlay", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+fn create_tray(app: &tauri::App, language: Language) -> tauri::Result<TrayMenuItems> {
+    let labels = tray_labels(language);
+    let show = MenuItem::with_id(
+        app,
+        "show-settings",
+        labels.show_settings,
+        true,
+        None::<&str>,
+    )?;
+    let toggle = MenuItem::with_id(
+        app,
+        "toggle-overlay",
+        labels.toggle_overlay,
+        true,
+        None::<&str>,
+    )?;
+    let quit = MenuItem::with_id(app, "quit", labels.quit, true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show, &toggle, &quit])?;
 
     let mut tray = TrayIconBuilder::new()
@@ -130,7 +157,42 @@ fn create_tray(app: &tauri::App) -> tauri::Result<()> {
     }
 
     tray.build(app)?;
-    Ok(())
+    Ok(TrayMenuItems {
+        show_settings: show,
+        toggle_overlay: toggle,
+        quit,
+    })
+}
+
+fn apply_tray_language(app: &tauri::AppHandle, language: Language) {
+    if let Some(state) = app.try_state::<AppState>() {
+        let labels = tray_labels(language);
+
+        let _ = state
+            .tray_menu_items
+            .show_settings
+            .set_text(labels.show_settings);
+        let _ = state
+            .tray_menu_items
+            .toggle_overlay
+            .set_text(labels.toggle_overlay);
+        let _ = state.tray_menu_items.quit.set_text(labels.quit);
+    }
+}
+
+fn tray_labels(language: Language) -> TrayLabels {
+    match language {
+        Language::Zh => TrayLabels {
+            show_settings: "显示设置",
+            toggle_overlay: "开关辅助线",
+            quit: "退出",
+        },
+        Language::En => TrayLabels {
+            show_settings: "Show Settings",
+            toggle_overlay: "Toggle Overlay",
+            quit: "Quit",
+        },
+    }
 }
 
 fn register_shortcut(app: &tauri::App) -> tauri::Result<()> {
@@ -173,14 +235,15 @@ pub fn run() {
                 .unwrap_or_else(|_| PathBuf::from("."))
                 .join("settings.json");
             let settings = load_from_path(&settings_path);
+            let tray_menu_items = create_tray(app, settings.language)?;
 
             app.manage(AppState {
                 settings: Arc::new(Mutex::new(settings.clone())),
                 settings_path,
+                tray_menu_items,
             });
 
             configure_overlay_window(app.handle(), settings.enabled);
-            create_tray(app)?;
             register_shortcut(app)?;
 
             Ok(())

@@ -8,6 +8,11 @@ import {
   type OverlaySettings,
 } from './settings'
 import {
+  LANGUAGE_OPTIONS,
+  getUiText,
+  type Language,
+} from './i18n'
+import {
   getSettings,
   onSettingsChanged,
   onSettingsPreview,
@@ -17,21 +22,34 @@ import {
 } from './tauri'
 import { startSettingsSync } from './settingsSync'
 import { applyDocumentViewMode } from './viewMode'
-import { createSettingsCommitter } from './settingsCommit'
+import {
+  createSettingsCommitter,
+  type SettingsCommitStatus,
+} from './settingsCommit'
 
-const STYLE_LABELS: Array<{ value: AnchorStyle; label: string }> = [
-  { value: 'crosshair', label: 'Crosshair' },
-  { value: 'ring', label: 'Center ring' },
-  { value: 'fullGuide', label: 'Full guide' },
-  { value: 'horizontal', label: 'Horizontal line' },
-  { value: 'vertical', label: 'Vertical line' },
-  { value: 'cornerBrackets', label: 'Corner brackets' },
+const ANCHOR_STYLE_VALUES: AnchorStyle[] = [
+  'crosshair',
+  'ring',
+  'fullGuide',
+  'horizontal',
+  'vertical',
+  'cornerBrackets',
 ]
+
+type SimpleStatusKind =
+  | 'ready'
+  | 'overlayEnabled'
+  | 'overlayDisabled'
+  | SettingsCommitStatus
+
+type UiStatus =
+  | { kind: SimpleStatusKind }
+  | { kind: 'saveFailed' | 'syncFailed'; detail: string }
 
 function App() {
   const isOverlay = window.location.hash === '#/overlay'
   const [settings, setSettings] = useState<OverlaySettings>(DEFAULT_SETTINGS)
-  const [status, setStatus] = useState('Ready')
+  const [status, setStatus] = useState<UiStatus>({ kind: 'ready' })
   const settingsCommitter = useMemo(
     () =>
       createSettingsCommitter({
@@ -39,13 +57,14 @@ function App() {
         applySettings: setSettings,
         previewSettings,
         saveSettings: updateSettings,
-        onStatus: setStatus,
+        onStatus: (status) => setStatus({ kind: status }),
         onError: (error) => {
-          setStatus(`Save failed: ${formatError(error)}`)
+          setStatus({ kind: 'saveFailed', detail: formatError(error) })
         },
       }),
     [],
   )
+  const text = getUiText(settings.language)
 
   useEffect(() => {
     applyDocumentViewMode(document, isOverlay)
@@ -58,7 +77,7 @@ function App() {
       applySettings: settingsCommitter.receiveExternal,
       onError: (error) => {
         if (!isOverlay) {
-          setStatus(`Sync failed: ${formatError(error)}`)
+          setStatus({ kind: 'syncFailed', detail: formatError(error) })
         }
       },
     })
@@ -66,8 +85,16 @@ function App() {
 
   useEffect(() => () => settingsCommitter.dispose(), [settingsCommitter])
 
+  useEffect(() => {
+    document.documentElement.lang = settings.language === 'zh' ? 'zh-CN' : 'en'
+  }, [settings.language])
+
   const commitPatch = (patch: Partial<OverlaySettings>) => {
     settingsCommitter.commitPatch(patch)
+  }
+
+  const setLanguage = (language: Language) => {
+    commitPatch({ language })
   }
 
   const overlayVars = useMemo(() => overlayCssVars(settings), [settings])
@@ -82,19 +109,40 @@ function App() {
         <div className="title-row">
           <div>
             <h1>VomiShield</h1>
-            <p>Stable visual anchors for windowed and borderless 3D games.</p>
+            <p>{text.tagline}</p>
           </div>
-          <button
-            type="button"
-            className={settings.enabled ? 'power is-on' : 'power'}
-            onClick={async () => {
-              const next = await toggleOverlay()
-              settingsCommitter.replaceSettings(next)
-              setStatus(next.enabled ? 'Overlay enabled' : 'Overlay disabled')
-            }}
-          >
-            {settings.enabled ? 'On' : 'Off'}
-          </button>
+          <div className="header-actions">
+            <div
+              className="language-switch"
+              role="group"
+              aria-label={text.languageSwitchLabel}
+            >
+              {LANGUAGE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={settings.language === option.value ? 'is-active' : ''}
+                  aria-pressed={settings.language === option.value}
+                  onClick={() => setLanguage(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className={settings.enabled ? 'power is-on' : 'power'}
+              onClick={async () => {
+                const next = await toggleOverlay()
+                settingsCommitter.replaceSettings(next)
+                setStatus({
+                  kind: next.enabled ? 'overlayEnabled' : 'overlayDisabled',
+                })
+              }}
+            >
+              {settings.enabled ? text.powerOn : text.powerOff}
+            </button>
+          </div>
         </div>
 
         <div className="preview-frame">
@@ -103,23 +151,23 @@ function App() {
 
         <div className="controls">
           <label className="field">
-            <span>Anchor style</span>
+            <span>{text.fields.anchorStyle}</span>
             <select
               value={settings.style}
               onChange={(event) =>
                 commitPatch({ style: event.target.value as AnchorStyle })
               }
             >
-              {STYLE_LABELS.map((style) => (
-                <option key={style.value} value={style.value}>
-                  {style.label}
+              {ANCHOR_STYLE_VALUES.map((style) => (
+                <option key={style} value={style}>
+                  {text.anchorStyles[style]}
                 </option>
               ))}
             </select>
           </label>
 
           <RangeField
-            label="Opacity"
+            label={text.fields.opacity}
             min={0.05}
             max={1}
             step={0.01}
@@ -129,7 +177,7 @@ function App() {
           />
 
           <label className="field color-field">
-            <span>Color</span>
+            <span>{text.fields.color}</span>
             <input
               type="color"
               value={settings.color}
@@ -138,7 +186,7 @@ function App() {
           </label>
 
           <RangeField
-            label="Size"
+            label={text.fields.size}
             min={32}
             max={360}
             step={1}
@@ -148,7 +196,7 @@ function App() {
           />
 
           <RangeField
-            label="Thickness"
+            label={text.fields.thickness}
             min={1}
             max={8}
             step={1}
@@ -158,7 +206,7 @@ function App() {
           />
 
           <RangeField
-            label="Glow"
+            label={text.fields.glow}
             min={0}
             max={1}
             step={0.01}
@@ -168,7 +216,7 @@ function App() {
           />
 
           <RangeField
-            label="Background dim"
+            label={text.fields.backdrop}
             min={0}
             max={0.45}
             step={0.01}
@@ -178,7 +226,7 @@ function App() {
           />
 
           <RangeField
-            label="Vertical offset"
+            label={text.fields.offsetY}
             min={-240}
             max={240}
             step={1}
@@ -189,8 +237,8 @@ function App() {
         </div>
 
         <footer className="footer-row">
-          <span>{status}</span>
-          <span>Shortcut: Ctrl + Alt + V</span>
+          <span>{formatStatus(status, text)}</span>
+          <span>{text.shortcut}</span>
         </footer>
       </section>
     </main>
@@ -272,6 +320,16 @@ function OverlaySurface({ settings, style, preview = false }: OverlaySurfaceProp
 
 function formatError(error: unknown) {
   return error instanceof Error ? error.message : String(error)
+}
+
+function formatStatus(status: UiStatus, text: ReturnType<typeof getUiText>) {
+  const label = text.statuses[status.kind]
+
+  if ('detail' in status) {
+    return `${label}${text.statusDetailSeparator}${status.detail}`
+  }
+
+  return label
 }
 
 export default App

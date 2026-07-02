@@ -19,6 +19,7 @@ describe('settings helpers', () => {
       glow: 0.42,
       backdrop: 0,
       offsetY: 0,
+      language: 'zh',
     })
   })
 

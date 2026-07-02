@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { DEFAULT_LANGUAGE, type Language } from './i18n'
 
 export type AnchorStyle =
   | 'crosshair'
@@ -18,6 +19,7 @@ export type OverlaySettings = {
   glow: number
   backdrop: number
   offsetY: number
+  language: Language
 }
 
 export const DEFAULT_SETTINGS: OverlaySettings = {
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: OverlaySettings = {
   glow: 0.42,
   backdrop: 0,
   offsetY: 0,
+  language: DEFAULT_LANGUAGE,
 }
 
 export function patchSettings(
