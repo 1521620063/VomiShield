@@ -107,8 +107,22 @@ fn configure_overlay_window(app: &tauri::AppHandle, enabled: bool) {
         let _ = window.set_always_on_top(true);
         let _ = window.set_skip_taskbar(true);
         let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
+        if let Some(shadow_enabled) = overlay_shadow_override_for_current_platform() {
+            let _ = window.set_shadow(shadow_enabled);
+        }
         let _ = window.set_ignore_cursor_events(true);
         apply_overlay_visibility(app, enabled);
+    }
+}
+
+fn overlay_shadow_override_for_current_platform() -> Option<bool> {
+    overlay_shadow_override_for_target_os(std::env::consts::OS)
+}
+
+fn overlay_shadow_override_for_target_os(target_os: &str) -> Option<bool> {
+    match target_os {
+        "macos" => Some(false),
+        _ => None,
     }
 }
 
@@ -257,4 +271,16 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn overlay_shadow_override_only_disables_macos_shadow() {
+        assert_eq!(overlay_shadow_override_for_target_os("macos"), Some(false));
+        assert_eq!(overlay_shadow_override_for_target_os("windows"), None);
+        assert_eq!(overlay_shadow_override_for_target_os("linux"), None);
+    }
 }
