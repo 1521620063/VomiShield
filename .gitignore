@@ -1,0 +1,13 @@
+.superpowers/
+node_modules/
+dist/
+target/
+src-tauri/target/
+.vite/
+.env
+.env.*
+!.env.example
+*.log
+*.local
+src-tauri/gen/
+
