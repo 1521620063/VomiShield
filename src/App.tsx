@@ -14,6 +14,7 @@ import {
   toggleOverlay,
   updateSettings,
 } from './tauri'
+import { startSettingsSync } from './settingsSync'
 import { applyDocumentViewMode } from './viewMode'
 
 const STYLE_LABELS: Array<{ value: AnchorStyle; label: string }> = [
@@ -30,17 +31,33 @@ function App() {
   useEffect(() => {
     applyDocumentViewMode(document, isOverlay)
 
-    void getSettings().then(setSettings)
-    void onSettingsChanged(setSettings)
+    return startSettingsSync({
+      isOverlay,
+      getSettings,
+      onSettingsChanged,
+      applySettings: setSettings,
+      onError: (error) => {
+        if (!isOverlay) {
+          setStatus(`Sync failed: ${formatError(error)}`)
+        }
+      },
+    })
   }, [isOverlay])
 
   const commitPatch = async (patch: Partial<OverlaySettings>) => {
+    const previous = settings
     const next = patchSettings(settings, patch)
     setSettings(next)
     setStatus('Saving...')
-    const saved = await updateSettings(next)
-    setSettings(saved)
-    setStatus('Saved')
+
+    try {
+      const saved = await updateSettings(next)
+      setSettings(saved)
+      setStatus('Saved')
+    } catch (error) {
+      setSettings(previous)
+      setStatus(`Save failed: ${formatError(error)}`)
+    }
   }
 
   const overlayVars = useMemo(() => overlayCssVars(settings), [settings])
@@ -206,6 +223,10 @@ function OverlaySurface({ settings, style, preview = false }: OverlaySurfaceProp
       <div className="anchor anchor-ring" />
     </div>
   )
+}
+
+function formatError(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
 }
 
 export default App
