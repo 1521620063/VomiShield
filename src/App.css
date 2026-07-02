@@ -35,6 +35,20 @@
   gap: 12px;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 10px 18px rgba(27, 43, 38, 0.18));
+}
+
 .language-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(58px, 1fr));

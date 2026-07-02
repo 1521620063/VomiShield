@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 256 256">
+  <title id="title">VomiShield logo</title>
+  <desc id="desc">A calm shield mark with a centered visual anchor.</desc>
+  <defs>
+    <linearGradient id="shield-fill" x1="70" x2="193" y1="35" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#203f36"/>
+      <stop offset=".58" stop-color="#142520"/>
+      <stop offset="1" stop-color="#0d1714"/>
+    </linearGradient>
+    <linearGradient id="anchor-stroke" x1="82" x2="178" y1="76" y2="177" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a8ffe0"/>
+      <stop offset=".5" stop-color="#6ff0c2"/>
+      <stop offset="1" stop-color="#38b892"/>
+    </linearGradient>
+    <filter id="soft-glow" x="31" y="29" width="194" height="198" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+  <path fill="#6ff0c2" d="M128 22 55 50v58c0 51 29 98 73 122 44-24 73-71 73-122V50z" filter="url(#soft-glow)" opacity=".24"/>
+  <path fill="url(#shield-fill)" d="M128 18 49 48v61c0 55 32 105 79 130 47-25 79-75 79-130V48z"/>
+  <path fill="none" stroke="#6ff0c2" stroke-linejoin="round" stroke-width="8" d="M128 30 61 55v53c0 47 26 90 67 113 41-23 67-66 67-113V55z" opacity=".8"/>
+  <path fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="6" d="M128 51v35m0 84v35m77-77h-35m-84 0H51" opacity=".18"/>
+  <circle cx="128" cy="128" r="49" fill="none" stroke="url(#anchor-stroke)" stroke-width="10"/>
+  <path fill="none" stroke="url(#anchor-stroke)" stroke-linecap="round" stroke-width="13" d="M128 84v88m44-44H84"/>
+  <circle cx="128" cy="128" r="15" fill="#f7fffc"/>
+  <circle cx="128" cy="128" r="6" fill="#17342c"/>
+  <path fill="none" stroke="#dffff4" stroke-linecap="round" stroke-width="6" d="M96 78c9-9 20-14 32-14m32 114c-9 9-20 14-32 14" opacity=".72"/>
+</svg>

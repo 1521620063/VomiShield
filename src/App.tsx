@@ -107,9 +107,12 @@ function App() {
     <main className="shell">
       <section className="panel control-panel">
         <div className="title-row">
-          <div>
-            <h1>VomiShield</h1>
-            <p>{text.tagline}</p>
+          <div className="brand-lockup">
+            <img className="brand-mark" src="/logo.svg" alt="" />
+            <div>
+              <h1>VomiShield</h1>
+              <p>{text.tagline}</p>
+            </div>
           </div>
           <div className="header-actions">
             <div
