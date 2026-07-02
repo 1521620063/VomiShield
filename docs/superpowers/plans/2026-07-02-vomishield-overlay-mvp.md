@@ -77,7 +77,7 @@
 **Files:**
 - No new files expected.
 
-- [ ] Run `npm run tauri -- dev`.
+- [ ] Run `npm run tauri:dev`.
 - [ ] Confirm settings window opens.
 - [ ] Confirm overlay window appears when enabled.
 - [ ] Confirm controls update overlay without restarting.

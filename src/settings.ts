@@ -41,3 +41,10 @@ export function overlayCssVars(
   }
 }
 
+export function overlayRenderAttributes(
+  settings: OverlaySettings,
+): { 'data-anchor-style': AnchorStyle } {
+  return {
+    'data-anchor-style': settings.style,
+  }
+}

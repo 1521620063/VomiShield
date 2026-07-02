@@ -156,6 +156,10 @@ p {
   transform: translate(-50%, -50%);
   background: var(--anchor-color);
   box-shadow: 0 0 18px color-mix(in srgb, var(--anchor-color) 42%, transparent);
+  transition:
+    width 120ms ease,
+    height 120ms ease,
+    opacity 120ms ease;
 }
 
 .anchor-horizontal {
@@ -169,28 +173,43 @@ p {
 }
 
 .anchor-ring {
-  width: calc(var(--anchor-size) * 0.22);
-  height: calc(var(--anchor-size) * 0.22);
+  width: calc(var(--anchor-size) * 0.42);
+  height: calc(var(--anchor-size) * 0.42);
   border: var(--anchor-thickness) solid var(--anchor-color);
   border-radius: 999px;
   background: transparent;
 }
 
-.style-ring .anchor-horizontal,
-.style-ring .anchor-vertical {
+.overlay-surface[data-anchor-style='ring'] .anchor-horizontal,
+.overlay-surface[data-anchor-style='ring'] .anchor-vertical {
   display: none;
 }
 
-.style-crosshair .anchor-ring {
+.overlay-surface[data-anchor-style='ring'] .anchor-ring {
+  width: calc(var(--anchor-size) * 0.72);
+  height: calc(var(--anchor-size) * 0.72);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--anchor-color) 40%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--anchor-color) 20%, transparent);
+}
+
+.overlay-surface[data-anchor-style='crosshair'] .anchor-ring {
   display: none;
 }
 
-.style-fullGuide .anchor-horizontal {
+.overlay-surface[data-anchor-style='fullGuide'] .anchor-horizontal {
   width: 100%;
+  opacity: 0.68;
 }
 
-.style-fullGuide .anchor-vertical {
+.overlay-surface[data-anchor-style='fullGuide'] .anchor-vertical {
   height: 100%;
+  opacity: 0.68;
+}
+
+.overlay-surface[data-anchor-style='fullGuide'] .anchor-ring {
+  width: calc(var(--anchor-size) * 0.36);
+  height: calc(var(--anchor-size) * 0.36);
 }
 
 body[data-view='overlay'] {

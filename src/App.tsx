@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import {
   DEFAULT_SETTINGS,
+  overlayRenderAttributes,
   overlayCssVars,
   patchSettings,
   type AnchorStyle,
@@ -186,15 +187,20 @@ type OverlaySurfaceProps = {
 function OverlaySurface({ settings, style, preview = false }: OverlaySurfaceProps) {
   const className = [
     'overlay-surface',
-    `style-${settings.style}`,
     preview ? 'is-preview' : '',
     settings.enabled ? 'is-enabled' : 'is-disabled',
   ]
     .filter(Boolean)
     .join(' ')
+  const renderAttributes = overlayRenderAttributes(settings)
 
   return (
-    <div className={className} style={style} aria-hidden={!preview}>
+    <div
+      className={className}
+      style={style}
+      aria-hidden={!preview}
+      {...renderAttributes}
+    >
       <div className="anchor anchor-horizontal" />
       <div className="anchor anchor-vertical" />
       <div className="anchor anchor-ring" />

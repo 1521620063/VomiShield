@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_SETTINGS,
+  overlayRenderAttributes,
   overlayCssVars,
   patchSettings,
   type OverlaySettings,
@@ -45,6 +46,17 @@ describe('settings helpers', () => {
       '--anchor-size': '160px',
       '--anchor-thickness': '4px',
       '--anchor-color': '#ffffff',
+    })
+  })
+
+  it('exposes anchor style as a stable data attribute for CSS selectors', () => {
+    expect(
+      overlayRenderAttributes({
+        ...DEFAULT_SETTINGS,
+        style: 'fullGuide',
+      }),
+    ).toEqual({
+      'data-anchor-style': 'fullGuide',
     })
   })
 })
