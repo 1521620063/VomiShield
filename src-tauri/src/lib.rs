@@ -9,6 +9,7 @@ use settings::{load_from_path, save_to_path, Language, OverlaySettings};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
+    utils::config::Color,
     Emitter, Manager, State, Wry,
 };
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
@@ -105,6 +106,7 @@ fn configure_overlay_window(app: &tauri::AppHandle, enabled: bool) {
 
         let _ = window.set_always_on_top(true);
         let _ = window.set_skip_taskbar(true);
+        let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
         let _ = window.set_ignore_cursor_events(true);
         apply_overlay_visibility(app, enabled);
     }
