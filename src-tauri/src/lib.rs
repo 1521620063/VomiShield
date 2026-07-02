@@ -7,6 +7,7 @@ use std::{
 
 use settings::{load_from_path, save_to_path, Language, OverlaySettings};
 use tauri::{
+    image::Image,
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     utils::config::Color,
@@ -15,6 +16,7 @@ use tauri::{
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 const SETTINGS_CHANGED_EVENT: &str = "settings-changed";
+const APP_ICON_BYTES: &[u8] = include_bytes!("../icons/icon.png");
 
 struct AppState {
     settings: Arc<Mutex<OverlaySettings>>,
@@ -134,7 +136,11 @@ fn show_main_window(app: &tauri::AppHandle) {
     }
 }
 
-fn create_tray(app: &tauri::App, language: Language) -> tauri::Result<TrayMenuItems> {
+fn create_tray(
+    app: &tauri::App,
+    language: Language,
+    icon: Option<&Image<'_>>,
+) -> tauri::Result<TrayMenuItems> {
     let labels = tray_labels(language);
     let show = MenuItem::with_id(
         app,
@@ -168,7 +174,7 @@ fn create_tray(app: &tauri::App, language: Language) -> tauri::Result<TrayMenuIt
             _ => {}
         });
 
-    if let Some(icon) = app.default_window_icon() {
+    if let Some(icon) = icon.or_else(|| app.default_window_icon()) {
         tray = tray.icon(icon.clone());
     }
 
@@ -194,6 +200,16 @@ fn apply_tray_language(app: &tauri::AppHandle, language: Language) {
             .set_text(labels.toggle_overlay);
         let _ = state.tray_menu_items.quit.set_text(labels.quit);
     }
+}
+
+fn apply_app_icon(app: &mut tauri::App) -> tauri::Result<Image<'static>> {
+    let icon = Image::from_bytes(APP_ICON_BYTES)?;
+
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_icon(icon.clone());
+    }
+
+    Ok(icon)
 }
 
 fn tray_labels(language: Language) -> TrayLabels {
@@ -245,13 +261,14 @@ pub fn run() {
                 )?;
             }
 
+            let app_icon = apply_app_icon(app)?;
             let settings_path = app
                 .path()
                 .app_config_dir()
                 .unwrap_or_else(|_| PathBuf::from("."))
                 .join("settings.json");
             let settings = load_from_path(&settings_path);
-            let tray_menu_items = create_tray(app, settings.language)?;
+            let tray_menu_items = create_tray(app, settings.language, Some(&app_icon))?;
 
             app.manage(AppState {
                 settings: Arc::new(Mutex::new(settings.clone())),
