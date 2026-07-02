@@ -4,29 +4,48 @@ import {
   DEFAULT_SETTINGS,
   overlayRenderAttributes,
   overlayCssVars,
-  patchSettings,
   type AnchorStyle,
   type OverlaySettings,
 } from './settings'
 import {
   getSettings,
   onSettingsChanged,
+  onSettingsPreview,
+  previewSettings,
   toggleOverlay,
   updateSettings,
 } from './tauri'
 import { startSettingsSync } from './settingsSync'
 import { applyDocumentViewMode } from './viewMode'
+import { createSettingsCommitter } from './settingsCommit'
 
 const STYLE_LABELS: Array<{ value: AnchorStyle; label: string }> = [
   { value: 'crosshair', label: 'Crosshair' },
   { value: 'ring', label: 'Center ring' },
   { value: 'fullGuide', label: 'Full guide' },
+  { value: 'horizontal', label: 'Horizontal line' },
+  { value: 'vertical', label: 'Vertical line' },
+  { value: 'cornerBrackets', label: 'Corner brackets' },
 ]
 
 function App() {
   const isOverlay = window.location.hash === '#/overlay'
   const [settings, setSettings] = useState<OverlaySettings>(DEFAULT_SETTINGS)
   const [status, setStatus] = useState('Ready')
+  const settingsCommitter = useMemo(
+    () =>
+      createSettingsCommitter({
+        initialSettings: DEFAULT_SETTINGS,
+        applySettings: setSettings,
+        previewSettings,
+        saveSettings: updateSettings,
+        onStatus: setStatus,
+        onError: (error) => {
+          setStatus(`Save failed: ${formatError(error)}`)
+        },
+      }),
+    [],
+  )
 
   useEffect(() => {
     applyDocumentViewMode(document, isOverlay)
@@ -35,29 +54,20 @@ function App() {
       isOverlay,
       getSettings,
       onSettingsChanged,
-      applySettings: setSettings,
+      onSettingsPreview,
+      applySettings: settingsCommitter.receiveExternal,
       onError: (error) => {
         if (!isOverlay) {
           setStatus(`Sync failed: ${formatError(error)}`)
         }
       },
     })
-  }, [isOverlay])
+  }, [isOverlay, settingsCommitter])
 
-  const commitPatch = async (patch: Partial<OverlaySettings>) => {
-    const previous = settings
-    const next = patchSettings(settings, patch)
-    setSettings(next)
-    setStatus('Saving...')
+  useEffect(() => () => settingsCommitter.dispose(), [settingsCommitter])
 
-    try {
-      const saved = await updateSettings(next)
-      setSettings(saved)
-      setStatus('Saved')
-    } catch (error) {
-      setSettings(previous)
-      setStatus(`Save failed: ${formatError(error)}`)
-    }
+  const commitPatch = (patch: Partial<OverlaySettings>) => {
+    settingsCommitter.commitPatch(patch)
   }
 
   const overlayVars = useMemo(() => overlayCssVars(settings), [settings])
@@ -79,7 +89,7 @@ function App() {
             className={settings.enabled ? 'power is-on' : 'power'}
             onClick={async () => {
               const next = await toggleOverlay()
-              setSettings(next)
+              settingsCommitter.replaceSettings(next)
               setStatus(next.enabled ? 'Overlay enabled' : 'Overlay disabled')
             }}
           >
@@ -97,7 +107,7 @@ function App() {
             <select
               value={settings.style}
               onChange={(event) =>
-                void commitPatch({ style: event.target.value as AnchorStyle })
+                commitPatch({ style: event.target.value as AnchorStyle })
               }
             >
               {STYLE_LABELS.map((style) => (
@@ -115,8 +125,17 @@ function App() {
             step={0.01}
             value={settings.opacity}
             suffix=""
-            onChange={(opacity) => void commitPatch({ opacity })}
+            onChange={(opacity) => commitPatch({ opacity })}
           />
+
+          <label className="field color-field">
+            <span>Color</span>
+            <input
+              type="color"
+              value={settings.color}
+              onChange={(event) => commitPatch({ color: event.target.value })}
+            />
+          </label>
 
           <RangeField
             label="Size"
@@ -125,7 +144,7 @@ function App() {
             step={1}
             value={settings.size}
             suffix="px"
-            onChange={(size) => void commitPatch({ size })}
+            onChange={(size) => commitPatch({ size })}
           />
 
           <RangeField
@@ -135,17 +154,38 @@ function App() {
             step={1}
             value={settings.thickness}
             suffix="px"
-            onChange={(thickness) => void commitPatch({ thickness })}
+            onChange={(thickness) => commitPatch({ thickness })}
           />
 
-          <label className="field color-field">
-            <span>Color</span>
-            <input
-              type="color"
-              value={settings.color}
-              onChange={(event) => void commitPatch({ color: event.target.value })}
-            />
-          </label>
+          <RangeField
+            label="Glow"
+            min={0}
+            max={1}
+            step={0.01}
+            value={settings.glow}
+            suffix=""
+            onChange={(glow) => commitPatch({ glow })}
+          />
+
+          <RangeField
+            label="Background dim"
+            min={0}
+            max={0.45}
+            step={0.01}
+            value={settings.backdrop}
+            suffix=""
+            onChange={(backdrop) => commitPatch({ backdrop })}
+          />
+
+          <RangeField
+            label="Vertical offset"
+            min={-240}
+            max={240}
+            step={1}
+            value={settings.offsetY}
+            suffix="px"
+            onChange={(offsetY) => commitPatch({ offsetY })}
+          />
         </div>
 
         <footer className="footer-row">
@@ -218,9 +258,14 @@ function OverlaySurface({ settings, style, preview = false }: OverlaySurfaceProp
       aria-hidden={!preview}
       {...renderAttributes}
     >
+      <div className="overlay-backdrop" />
       <div className="anchor anchor-horizontal" />
       <div className="anchor anchor-vertical" />
       <div className="anchor anchor-ring" />
+      <div className="anchor-corner anchor-corner-top-left" />
+      <div className="anchor-corner anchor-corner-top-right" />
+      <div className="anchor-corner anchor-corner-bottom-left" />
+      <div className="anchor-corner anchor-corner-bottom-right" />
     </div>
   )
 }

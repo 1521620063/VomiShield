@@ -1,6 +1,12 @@
 import type { CSSProperties } from 'react'
 
-export type AnchorStyle = 'crosshair' | 'ring' | 'fullGuide'
+export type AnchorStyle =
+  | 'crosshair'
+  | 'ring'
+  | 'fullGuide'
+  | 'horizontal'
+  | 'vertical'
+  | 'cornerBrackets'
 
 export type OverlaySettings = {
   enabled: boolean
@@ -9,6 +15,9 @@ export type OverlaySettings = {
   size: number
   thickness: number
   color: string
+  glow: number
+  backdrop: number
+  offsetY: number
 }
 
 export const DEFAULT_SETTINGS: OverlaySettings = {
@@ -18,6 +27,9 @@ export const DEFAULT_SETTINGS: OverlaySettings = {
   size: 120,
   thickness: 2,
   color: '#6ff0c2',
+  glow: 0.42,
+  backdrop: 0,
+  offsetY: 0,
 }
 
 export function patchSettings(
@@ -38,6 +50,9 @@ export function overlayCssVars(
     '--anchor-size': `${settings.size}px`,
     '--anchor-thickness': `${settings.thickness}px`,
     '--anchor-color': settings.color,
+    '--anchor-glow': String(settings.glow),
+    '--backdrop-opacity': String(settings.backdrop),
+    '--anchor-offset-y': `${settings.offsetY}px`,
   }
 }
 

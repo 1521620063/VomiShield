@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { emit, listen } from '@tauri-apps/api/event'
 import { DEFAULT_SETTINGS, type OverlaySettings } from './settings'
 
 declare global {
@@ -55,6 +55,26 @@ export async function onSettingsChanged(
 ): Promise<() => void> {
   try {
     return await listen<OverlaySettings>('settings-changed', (event) => {
+      handler(event.payload)
+    })
+  } catch (error) {
+    return fallbackOrThrow(() => {}, error)
+  }
+}
+
+export async function previewSettings(settings: OverlaySettings): Promise<void> {
+  try {
+    await emit('settings-preview', settings)
+  } catch (error) {
+    return fallbackOrThrow(undefined, error)
+  }
+}
+
+export async function onSettingsPreview(
+  handler: (settings: OverlaySettings) => void,
+): Promise<() => void> {
+  try {
+    return await listen<OverlaySettings>('settings-preview', (event) => {
       handler(event.payload)
     })
   } catch (error) {

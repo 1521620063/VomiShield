@@ -8,6 +8,9 @@ pub enum AnchorStyle {
     Crosshair,
     Ring,
     FullGuide,
+    Horizontal,
+    Vertical,
+    CornerBrackets,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -19,6 +22,12 @@ pub struct OverlaySettings {
     pub size: u16,
     pub thickness: u8,
     pub color: String,
+    #[serde(default = "default_glow")]
+    pub glow: f32,
+    #[serde(default)]
+    pub backdrop: f32,
+    #[serde(default)]
+    pub offset_y: i16,
 }
 
 impl Default for OverlaySettings {
@@ -30,6 +39,9 @@ impl Default for OverlaySettings {
             size: 120,
             thickness: 2,
             color: "#6ff0c2".to_string(),
+            glow: 0.42,
+            backdrop: 0.0,
+            offset_y: 0,
         }
     }
 }
@@ -43,6 +55,9 @@ impl OverlaySettings {
         self.opacity = self.opacity.clamp(0.05, 1.0);
         self.size = self.size.clamp(32, 360);
         self.thickness = self.thickness.clamp(1, 8);
+        self.glow = self.glow.clamp(0.0, 1.0);
+        self.backdrop = self.backdrop.clamp(0.0, 0.45);
+        self.offset_y = self.offset_y.clamp(-240, 240);
 
         Ok(self)
     }
@@ -73,6 +88,10 @@ fn is_hex_color(value: &str) -> bool {
     hex.len() == 6 && hex.chars().all(|char| char.is_ascii_hexdigit())
 }
 
+fn default_glow() -> f32 {
+    0.42
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,6 +106,9 @@ mod tests {
         assert_eq!(settings.size, 120);
         assert_eq!(settings.thickness, 2);
         assert_eq!(settings.color, "#6ff0c2");
+        assert_eq!(settings.glow, 0.42);
+        assert_eq!(settings.backdrop, 0.0);
+        assert_eq!(settings.offset_y, 0);
     }
 
     #[test]
@@ -98,6 +120,9 @@ mod tests {
             size: 999,
             thickness: 99,
             color: "#ffffff".to_string(),
+            glow: 9.0,
+            backdrop: 9.0,
+            offset_y: 999,
         }
         .validated()
         .expect("settings should be valid after numeric clamping");
@@ -105,6 +130,9 @@ mod tests {
         assert_eq!(settings.opacity, 1.0);
         assert_eq!(settings.size, 360);
         assert_eq!(settings.thickness, 8);
+        assert_eq!(settings.glow, 1.0);
+        assert_eq!(settings.backdrop, 0.45);
+        assert_eq!(settings.offset_y, 240);
     }
 
     #[test]
@@ -126,12 +154,33 @@ mod tests {
             size: 180,
             thickness: 4,
             color: "#ffcc66".to_string(),
+            glow: 0.6,
+            backdrop: 0.2,
+            offset_y: -80,
         };
 
         let json = serde_json::to_string(&settings).expect("serialize settings");
         let decoded: OverlaySettings = serde_json::from_str(&json).expect("deserialize settings");
 
         assert_eq!(decoded, settings);
+    }
+
+    #[test]
+    fn legacy_json_without_new_visual_fields_uses_new_defaults() {
+        let json = r##"{
+            "enabled": true,
+            "style": "crosshair",
+            "opacity": 0.5,
+            "size": 160,
+            "thickness": 3,
+            "color": "#ffffff"
+        }"##;
+
+        let decoded: OverlaySettings = serde_json::from_str(json).expect("deserialize settings");
+
+        assert_eq!(decoded.glow, 0.42);
+        assert_eq!(decoded.backdrop, 0.0);
+        assert_eq!(decoded.offset_y, 0);
     }
 
     #[test]

@@ -22,6 +22,7 @@ describe('startSettingsSync', () => {
         handler(eventSettings)
         return unlisten
       }),
+      onSettingsPreview: vi.fn(async () => vi.fn()),
       applySettings,
     })
 
@@ -41,6 +42,7 @@ describe('startSettingsSync', () => {
       isOverlay: true,
       getSettings,
       onSettingsChanged: vi.fn(async () => vi.fn()),
+      onSettingsPreview: vi.fn(async () => vi.fn()),
       applySettings: vi.fn(),
       setIntervalFn: (callback, delay) => {
         intervalCallback = typeof callback === 'function' ? () => callback() : undefined
@@ -55,5 +57,29 @@ describe('startSettingsSync', () => {
     stop()
 
     expect(getSettings).toHaveBeenCalledTimes(2)
+  })
+
+  it('applies preview events immediately for the overlay window', async () => {
+    const previewSettings: OverlaySettings = {
+      ...DEFAULT_SETTINGS,
+      opacity: 0.33,
+    }
+    const applySettings = vi.fn()
+
+    const stop = startSettingsSync({
+      isOverlay: true,
+      getSettings: vi.fn().mockResolvedValue(DEFAULT_SETTINGS),
+      onSettingsChanged: vi.fn(async () => vi.fn()),
+      onSettingsPreview: vi.fn(async (handler) => {
+        handler(previewSettings)
+        return vi.fn()
+      }),
+      applySettings,
+    })
+
+    await flushPromises()
+    stop()
+
+    expect(applySettings).toHaveBeenCalledWith(previewSettings)
   })
 })

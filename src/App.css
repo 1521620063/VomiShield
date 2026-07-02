@@ -98,7 +98,7 @@ p {
 }
 
 .range-field {
-  grid-template-columns: 92px 1fr 54px;
+  grid-template-columns: 118px 1fr 64px;
   align-items: center;
 }
 
@@ -133,9 +133,11 @@ p {
   --anchor-size: 120px;
   --anchor-thickness: 2px;
   --anchor-color: #6ff0c2;
+  --anchor-glow: 0.42;
+  --backdrop-opacity: 0;
+  --anchor-offset-y: 0px;
   position: fixed;
   inset: 0;
-  opacity: var(--overlay-opacity);
   pointer-events: none;
 }
 
@@ -145,17 +147,25 @@ p {
   height: 100%;
 }
 
-.overlay-surface.is-disabled {
-  opacity: 0.16;
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  opacity: var(--backdrop-opacity);
+}
+
+.overlay-surface.is-disabled .overlay-backdrop {
+  opacity: 0;
 }
 
 .anchor {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(50% + var(--anchor-offset-y));
   transform: translate(-50%, -50%);
   background: var(--anchor-color);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--anchor-color) 42%, transparent);
+  opacity: var(--overlay-opacity);
+  box-shadow: 0 0 calc(32px * var(--anchor-glow)) var(--anchor-color);
   transition:
     width 120ms ease,
     height 120ms ease,
@@ -180,8 +190,19 @@ p {
   background: transparent;
 }
 
+.anchor-corner {
+  position: absolute;
+  display: none;
+  width: calc(var(--anchor-size) * 0.24);
+  height: calc(var(--anchor-size) * 0.24);
+  opacity: var(--overlay-opacity);
+  border-color: var(--anchor-color);
+  filter: drop-shadow(0 0 calc(20px * var(--anchor-glow)) var(--anchor-color));
+}
+
 .overlay-surface[data-anchor-style='ring'] .anchor-horizontal,
-.overlay-surface[data-anchor-style='ring'] .anchor-vertical {
+.overlay-surface[data-anchor-style='ring'] .anchor-vertical,
+.overlay-surface[data-anchor-style='ring'] .anchor-corner {
   display: none;
 }
 
@@ -197,19 +218,90 @@ p {
   display: none;
 }
 
+.overlay-surface[data-anchor-style='crosshair'] .anchor-corner {
+  display: none;
+}
+
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-horizontal {
   width: 100%;
-  opacity: 0.68;
+  opacity: calc(var(--overlay-opacity) * 0.68);
 }
 
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-vertical {
   height: 100%;
-  opacity: 0.68;
+  opacity: calc(var(--overlay-opacity) * 0.68);
 }
 
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-ring {
   width: calc(var(--anchor-size) * 0.36);
   height: calc(var(--anchor-size) * 0.36);
+}
+
+.overlay-surface[data-anchor-style='fullGuide'] .anchor-corner {
+  display: none;
+}
+
+.overlay-surface[data-anchor-style='horizontal'] .anchor-horizontal {
+  width: 100%;
+}
+
+.overlay-surface[data-anchor-style='horizontal'] .anchor-vertical,
+.overlay-surface[data-anchor-style='horizontal'] .anchor-ring,
+.overlay-surface[data-anchor-style='horizontal'] .anchor-corner {
+  display: none;
+}
+
+.overlay-surface[data-anchor-style='vertical'] .anchor-vertical {
+  height: 100%;
+}
+
+.overlay-surface[data-anchor-style='vertical'] .anchor-horizontal,
+.overlay-surface[data-anchor-style='vertical'] .anchor-ring,
+.overlay-surface[data-anchor-style='vertical'] .anchor-corner {
+  display: none;
+}
+
+.overlay-surface[data-anchor-style='cornerBrackets'] .anchor-horizontal,
+.overlay-surface[data-anchor-style='cornerBrackets'] .anchor-vertical,
+.overlay-surface[data-anchor-style='cornerBrackets'] .anchor-ring {
+  display: none;
+}
+
+.overlay-surface[data-anchor-style='cornerBrackets'] .anchor-corner {
+  display: block;
+}
+
+.anchor-corner-top-left {
+  left: calc(50% - var(--anchor-size) * 0.5);
+  top: calc(50% + var(--anchor-offset-y) - var(--anchor-size) * 0.5);
+  border-top: var(--anchor-thickness) solid;
+  border-left: var(--anchor-thickness) solid;
+}
+
+.anchor-corner-top-right {
+  right: calc(50% - var(--anchor-size) * 0.5);
+  top: calc(50% + var(--anchor-offset-y) - var(--anchor-size) * 0.5);
+  border-top: var(--anchor-thickness) solid;
+  border-right: var(--anchor-thickness) solid;
+}
+
+.anchor-corner-bottom-left {
+  left: calc(50% - var(--anchor-size) * 0.5);
+  bottom: calc(50% - var(--anchor-offset-y) - var(--anchor-size) * 0.5);
+  border-bottom: var(--anchor-thickness) solid;
+  border-left: var(--anchor-thickness) solid;
+}
+
+.anchor-corner-bottom-right {
+  right: calc(50% - var(--anchor-size) * 0.5);
+  bottom: calc(50% - var(--anchor-offset-y) - var(--anchor-size) * 0.5);
+  border-right: var(--anchor-thickness) solid;
+  border-bottom: var(--anchor-thickness) solid;
+}
+
+.overlay-surface.is-disabled .anchor,
+.overlay-surface.is-disabled .anchor-corner {
+  opacity: calc(var(--overlay-opacity) * 0.18);
 }
 
 body[data-view='overlay'] {

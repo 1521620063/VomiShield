@@ -10,6 +10,9 @@ type SettingsSyncOptions = {
   onSettingsChanged: (
     handler: (settings: OverlaySettings) => void,
   ) => Promise<() => void>
+  onSettingsPreview?: (
+    handler: (settings: OverlaySettings) => void,
+  ) => Promise<() => void>
   applySettings: (settings: OverlaySettings) => void
   onError?: (error: unknown) => void
   setIntervalFn?: typeof globalThis.setInterval
@@ -20,6 +23,7 @@ export function startSettingsSync({
   isOverlay,
   getSettings,
   onSettingsChanged,
+  onSettingsPreview = async () => () => {},
   applySettings,
   onError = () => {},
   setIntervalFn = globalThis.setInterval.bind(globalThis),
@@ -27,6 +31,7 @@ export function startSettingsSync({
 }: SettingsSyncOptions) {
   let disposed = false
   let unlisten: (() => void) | undefined
+  let unlistenPreview: (() => void) | undefined
   let intervalId: TimerId | undefined
 
   const refreshSettings = () => {
@@ -63,6 +68,24 @@ export function startSettingsSync({
       }
     })
 
+  void onSettingsPreview((settings) => {
+    if (!disposed) {
+      applySettings(settings)
+    }
+  })
+    .then((cleanup) => {
+      if (disposed) {
+        cleanup()
+      } else {
+        unlistenPreview = cleanup
+      }
+    })
+    .catch((error) => {
+      if (!disposed) {
+        onError(error)
+      }
+    })
+
   if (isOverlay) {
     intervalId = setIntervalFn(refreshSettings, OVERLAY_REFRESH_INTERVAL_MS)
   }
@@ -70,6 +93,7 @@ export function startSettingsSync({
   return () => {
     disposed = true
     unlisten?.()
+    unlistenPreview?.()
 
     if (intervalId !== undefined) {
       clearIntervalFn(intervalId)

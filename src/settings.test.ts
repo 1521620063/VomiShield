@@ -16,6 +16,9 @@ describe('settings helpers', () => {
       size: 120,
       thickness: 2,
       color: '#6ff0c2',
+      glow: 0.42,
+      backdrop: 0,
+      offsetY: 0,
     })
   })
 
@@ -40,12 +43,18 @@ describe('settings helpers', () => {
         size: 160,
         thickness: 4,
         color: '#ffffff',
+        glow: 0.8,
+        backdrop: 0.18,
+        offsetY: -24,
       }),
     ).toEqual({
       '--overlay-opacity': '0.5',
       '--anchor-size': '160px',
       '--anchor-thickness': '4px',
       '--anchor-color': '#ffffff',
+      '--anchor-glow': '0.8',
+      '--backdrop-opacity': '0.18',
+      '--anchor-offset-y': '-24px',
     })
   })
 
@@ -58,5 +67,25 @@ describe('settings helpers', () => {
     ).toEqual({
       'data-anchor-style': 'fullGuide',
     })
+  })
+
+  it('accepts the expanded anchor styles for rendering', () => {
+    const styles = [
+      'crosshair',
+      'ring',
+      'fullGuide',
+      'horizontal',
+      'vertical',
+      'cornerBrackets',
+    ] as const
+
+    expect(
+      styles.map((style) =>
+        overlayRenderAttributes({
+          ...DEFAULT_SETTINGS,
+          style,
+        }),
+      ),
+    ).toEqual(styles.map((style) => ({ 'data-anchor-style': style })))
   })
 })
