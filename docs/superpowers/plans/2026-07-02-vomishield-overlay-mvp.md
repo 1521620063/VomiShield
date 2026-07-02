@@ -6,7 +6,7 @@
 
 **Architecture:** Use Tauri 2 with two windows: `main` for settings and `overlay` for the anchor surface. Rust manages validated settings, persistence, tray, shortcuts, and window state; React renders controls and the overlay from shared TypeScript types.
 
-**Tech Stack:** Rust 1.95, Tauri 2, TypeScript, React, Vite, Vitest, pnpm.
+**Tech Stack:** Rust 1.95, Tauri 2, TypeScript, React, Vite, Vitest, npm.
 
 ---
 
@@ -24,10 +24,10 @@
 - Create: `src-tauri/tauri.conf.json`
 
 - [ ] Create a React + Vite TypeScript app in the repository root.
-- [ ] Add Tauri 2 CLI and APIs with pnpm.
-- [ ] Initialize `src-tauri` with app name `VomiShield`, identifier `com.vomishield.app`, dev URL `http://localhost:5173`, frontend dev command `pnpm dev`, and frontend build command `pnpm build`.
-- [ ] Verify `pnpm install` completes.
-- [ ] Verify `pnpm build` completes.
+- [ ] Add Tauri 2 CLI and APIs with npm.
+- [ ] Initialize `src-tauri` with app name `VomiShield`, identifier `com.vomishield.desktop`, dev URL `http://localhost:5173`, frontend dev command `npm run dev`, and frontend build command `npm run build`.
+- [ ] Verify `npm install` completes.
+- [ ] Verify `npm run build` completes.
 
 ### Task 2: Add settings domain tests and Rust implementation
 
@@ -65,19 +65,19 @@
 - Modify: `src/App.css`
 
 - [ ] Write Vitest tests for default frontend settings, patch merging, and overlay CSS variable generation.
-- [ ] Run `pnpm test -- --run` and confirm tests fail because helpers do not exist.
+- [ ] Run `npm test -- --run` and confirm tests fail because helpers do not exist.
 - [ ] Implement TypeScript settings helpers.
 - [ ] Build settings UI with controls for enabled, style, opacity, size, thickness, and color.
 - [ ] Connect UI to Tauri commands and listen for `settings-changed`.
 - [ ] Add route/hash detection so the overlay window renders only the overlay surface.
-- [ ] Run `pnpm test -- --run` and `pnpm build`.
+- [ ] Run `npm test -- --run` and `npm run build`.
 
 ### Task 5: Verify desktop behavior
 
 **Files:**
 - No new files expected.
 
-- [ ] Run `pnpm tauri dev`.
+- [ ] Run `npm run tauri -- dev`.
 - [ ] Confirm settings window opens.
 - [ ] Confirm overlay window appears when enabled.
 - [ ] Confirm controls update overlay without restarting.
@@ -85,4 +85,3 @@
 - [ ] Confirm global shortcut toggles overlay.
 - [ ] Confirm settings persist after app restart.
 - [ ] Record any platform limitation found during Windows verification.
-

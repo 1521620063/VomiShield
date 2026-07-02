@@ -33,7 +33,7 @@ The app targets Windows first and keeps the architecture compatible with macOS. 
 
 ## Acceptance Criteria
 
-- `pnpm tauri dev` opens the settings window and an overlay window.
+- `npm run tauri -- dev` opens the settings window and an overlay window.
 - Toggling overlay visibility updates the overlay immediately.
 - Changing opacity, size, thickness, color, or style updates the overlay immediately.
 - Settings survive app restart.
@@ -41,4 +41,3 @@ The app targets Windows first and keeps the architecture compatible with macOS. 
 - Global shortcut toggles overlay.
 - Rust tests cover settings defaults, validation, and persistence path-independent serialization.
 - Frontend tests cover settings reducer/update behavior and overlay style calculation.
-

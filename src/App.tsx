@@ -13,6 +13,7 @@ import {
   toggleOverlay,
   updateSettings,
 } from './tauri'
+import { applyDocumentViewMode } from './viewMode'
 
 const STYLE_LABELS: Array<{ value: AnchorStyle; label: string }> = [
   { value: 'crosshair', label: 'Crosshair' },
@@ -26,7 +27,7 @@ function App() {
   const [status, setStatus] = useState('Ready')
 
   useEffect(() => {
-    document.body.dataset.view = isOverlay ? 'overlay' : 'settings'
+    applyDocumentViewMode(document, isOverlay)
 
     void getSettings().then(setSettings)
     void onSettingsChanged(setSettings)

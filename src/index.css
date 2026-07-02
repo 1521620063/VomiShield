@@ -22,7 +22,9 @@ body,
   margin: 0;
 }
 
+html[data-view='overlay'],
 body[data-view='overlay'],
+html[data-view='overlay'] body,
 body[data-view='overlay'] #root {
   background: transparent;
   overflow: hidden;
