@@ -312,6 +312,7 @@ p {
   --backdrop-opacity: 0;
   --anchor-offset-y: 0px;
   --edge-anchor-inset: max(28px, calc(var(--anchor-size) * 0.18));
+  --outer-anchor-inset: max(28px, calc(var(--anchor-outer-size) * 0.18));
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -394,13 +395,13 @@ p {
 .anchor-box-top,
 .anchor-dots-top {
   left: 50%;
-  top: var(--edge-anchor-inset);
+  top: var(--outer-anchor-inset);
   transform: translate(-50%, -50%);
 }
 
 .anchor-box-right,
 .anchor-dots-right {
-  left: calc(100% - var(--edge-anchor-inset));
+  left: calc(100% - var(--outer-anchor-inset));
   top: calc(50% + var(--anchor-offset-y));
   transform: translate(-50%, -50%);
 }
@@ -408,13 +409,13 @@ p {
 .anchor-box-bottom,
 .anchor-dots-bottom {
   left: 50%;
-  top: calc(100% - var(--edge-anchor-inset));
+  top: calc(100% - var(--outer-anchor-inset));
   transform: translate(-50%, -50%);
 }
 
 .anchor-box-left,
 .anchor-dots-left {
-  left: var(--edge-anchor-inset);
+  left: var(--outer-anchor-inset);
   top: calc(50% + var(--anchor-offset-y));
   transform: translate(-50%, -50%);
 }
@@ -449,24 +450,24 @@ p {
 
 .anchor-t-top {
   left: 50%;
-  top: var(--edge-anchor-inset);
+  top: var(--outer-anchor-inset);
   transform: translate(-50%, -50%);
 }
 
 .anchor-t-right {
-  left: calc(100% - var(--edge-anchor-inset));
+  left: calc(100% - var(--outer-anchor-inset));
   top: calc(50% + var(--anchor-offset-y));
   transform: translate(-50%, -50%);
 }
 
 .anchor-t-bottom {
   left: 50%;
-  top: calc(100% - var(--edge-anchor-inset));
+  top: calc(100% - var(--outer-anchor-inset));
   transform: translate(-50%, -50%);
 }
 
 .anchor-t-left {
-  left: var(--edge-anchor-inset);
+  left: var(--outer-anchor-inset);
   top: calc(50% + var(--anchor-offset-y));
   transform: translate(-50%, -50%);
 }

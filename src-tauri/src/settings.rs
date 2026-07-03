@@ -254,12 +254,13 @@ impl OverlaySettings {
                 style_settings.active_part = defaults.active_part;
             }
 
-            for part_settings in style_settings.parts.values_mut() {
+            for (part, part_settings) in style_settings.parts.iter_mut() {
                 if !is_hex_color(&part_settings.color) {
                     return Err(format!("invalid hex color: {}", part_settings.color));
                 }
+                let (min_size, max_size) = size_range_for_part(style, *part);
                 part_settings.opacity = part_settings.opacity.clamp(0.05, 1.0);
-                part_settings.size = part_settings.size.clamp(32, 360);
+                part_settings.size = part_settings.size.clamp(min_size, max_size);
                 part_settings.thickness = part_settings.thickness.clamp(1, 8);
                 part_settings.glow = part_settings.glow.clamp(0.0, 1.0);
             }
@@ -407,6 +408,27 @@ fn valid_parts_for_style(style: AnchorStyle) -> Vec<AnchorPart> {
         | AnchorStyle::TBars
         | AnchorStyle::DotMatrix => vec![AnchorPart::Center, AnchorPart::Outer],
         _ => vec![AnchorPart::Main],
+    }
+}
+
+fn size_range_for_part(style: AnchorStyle, part: AnchorPart) -> (u16, u16) {
+    match (style, part) {
+        (AnchorStyle::Crosshair, AnchorPart::Main) => (32, 320),
+        (AnchorStyle::Ring, AnchorPart::Main) => (40, 280),
+        (AnchorStyle::FullGuide, AnchorPart::Guide) => (80, 640),
+        (AnchorStyle::FullGuide, AnchorPart::Center) => (32, 220),
+        (AnchorStyle::Horizontal, AnchorPart::Main) => (80, 640),
+        (AnchorStyle::Vertical, AnchorPart::Main) => (80, 640),
+        (AnchorStyle::CornerBrackets, AnchorPart::Main) => (48, 360),
+        (AnchorStyle::BoxCircle, AnchorPart::Center)
+        | (AnchorStyle::EdgeBars, AnchorPart::Center)
+        | (AnchorStyle::TBars, AnchorPart::Center)
+        | (AnchorStyle::DotMatrix, AnchorPart::Center) => (40, 260),
+        (AnchorStyle::BoxCircle, AnchorPart::Outer)
+        | (AnchorStyle::TBars, AnchorPart::Outer)
+        | (AnchorStyle::DotMatrix, AnchorPart::Outer) => (48, 360),
+        (AnchorStyle::EdgeBars, AnchorPart::Outer) => (64, 420),
+        _ => (32, 360),
     }
 }
 
@@ -589,6 +611,64 @@ mod tests {
         assert_eq!(outer.thickness, 8);
         assert_eq!(outer.glow, 1.0);
         assert_eq!(settings.offset_y, 240);
+    }
+
+    #[test]
+    fn validation_uses_style_part_size_ranges() {
+        let mut settings = OverlaySettings::default();
+        settings
+            .style_settings
+            .get_mut(&AnchorStyle::FullGuide)
+            .expect("fullGuide settings")
+            .parts
+            .get_mut(&AnchorPart::Guide)
+            .expect("guide settings")
+            .size = 640;
+        settings
+            .style_settings
+            .get_mut(&AnchorStyle::Horizontal)
+            .expect("horizontal settings")
+            .parts
+            .get_mut(&AnchorPart::Main)
+            .expect("main settings")
+            .size = 640;
+        settings
+            .style_settings
+            .get_mut(&AnchorStyle::EdgeBars)
+            .expect("edgeBars settings")
+            .parts
+            .get_mut(&AnchorPart::Outer)
+            .expect("outer settings")
+            .size = 420;
+        settings
+            .style_settings
+            .get_mut(&AnchorStyle::Ring)
+            .expect("ring settings")
+            .parts
+            .get_mut(&AnchorPart::Main)
+            .expect("main settings")
+            .size = 999;
+
+        let settings = settings
+            .validated()
+            .expect("settings should be valid after numeric clamping");
+
+        assert_eq!(
+            settings.style_settings[&AnchorStyle::FullGuide].parts[&AnchorPart::Guide].size,
+            640
+        );
+        assert_eq!(
+            settings.style_settings[&AnchorStyle::Horizontal].parts[&AnchorPart::Main].size,
+            640
+        );
+        assert_eq!(
+            settings.style_settings[&AnchorStyle::EdgeBars].parts[&AnchorPart::Outer].size,
+            420
+        );
+        assert_eq!(
+            settings.style_settings[&AnchorStyle::Ring].parts[&AnchorPart::Main].size,
+            280
+        );
     }
 
     #[test]
