@@ -289,6 +289,48 @@ p {
   font-size: 13px;
 }
 
+.update-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e1e8e5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #52635e;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.update-actions button {
+  height: 32px;
+  border: 1px solid #c9d5d1;
+  border-radius: 6px;
+  background: #eef3f1;
+  color: #16352c;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.update-actions button:disabled {
+  color: #879690;
+  cursor: not-allowed;
+}
+
+.update-actions button + button {
+  border-color: #37b48e;
+  background: #16352c;
+  color: #8ff7d1;
+}
+
 .overlay-surface {
   --overlay-opacity: 0.72;
   --anchor-size: 120px;
@@ -851,6 +893,19 @@ body[data-view='overlay'] {
   .footer-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .update-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .update-actions {
+    width: 100%;
+  }
+
+  .update-actions button {
+    flex: 1 1 0;
   }
 
   .header-actions {

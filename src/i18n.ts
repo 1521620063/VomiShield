@@ -55,6 +55,19 @@ type StatusLabels = {
   syncFailed: string
 }
 
+type UpdateLabels = {
+  idle: string
+  checking: string
+  available: string
+  notAvailable: string
+  downloading: string
+  installing: string
+  relaunching: string
+  failed: string
+  check: string
+  install: string
+}
+
 type UiText = {
   tagline: string
   compatibilityNote: string
@@ -65,6 +78,7 @@ type UiText = {
   anchorStyles: AnchorStyleLabels
   anchorParts: AnchorPartLabels
   statuses: StatusLabels
+  updates: UpdateLabels
   statusDetailSeparator: string
   shortcut: string
   shortcutRecording: string
@@ -125,6 +139,18 @@ export const UI_TEXT = {
       saveFailed: '保存失败',
       syncFailed: '同步失败',
     },
+    updates: {
+      idle: '自动更新已开启',
+      checking: '正在检查更新...',
+      available: '发现新版本 {version}',
+      notAvailable: '当前已是最新版本',
+      downloading: '正在下载更新 {progress}',
+      installing: '正在安装更新...',
+      relaunching: '正在重启应用...',
+      failed: '更新失败',
+      check: '检查更新',
+      install: '更新并重启',
+    },
     statusDetailSeparator: '：',
     shortcut: '快捷键',
     shortcutRecording: '按下新的快捷键',
@@ -182,6 +208,18 @@ export const UI_TEXT = {
       overlayDisabled: 'Overlay disabled',
       saveFailed: 'Save failed',
       syncFailed: 'Sync failed',
+    },
+    updates: {
+      idle: 'Automatic updates enabled',
+      checking: 'Checking for updates...',
+      available: 'New version {version} is available',
+      notAvailable: 'You are on the latest version',
+      downloading: 'Downloading update {progress}',
+      installing: 'Installing update...',
+      relaunching: 'Restarting app...',
+      failed: 'Update failed',
+      check: 'Check for updates',
+      install: 'Update and restart',
     },
     statusDetailSeparator: ': ',
     shortcut: 'Shortcut',

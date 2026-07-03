@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "VomiShield",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "identifier": "com.vomishield.desktop",
   "build": {
     "frontendDist": "../dist",
@@ -43,6 +43,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -52,6 +53,17 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENGQzJENTMwQUUyODIxQzkKUldUSklTaXVNTlhDenhUazljTUZhbnRXbnEzNXdOZk44RFpYTDBmdjJLRHhEN3ZPOFVVay9uTHgK",
+      "endpoints": [
+        "https://github.com/1521620063/VomiShield/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

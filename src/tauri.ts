@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-function isTauriRuntime() {
+export function isTauriRuntime() {
   return (
     typeof window !== 'undefined' &&
     (window.__TAURI_INTERNALS__ !== undefined || window.__TAURI__ !== undefined)

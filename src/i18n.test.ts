@@ -37,4 +37,15 @@ describe('i18n', () => {
       expect(UI_TEXT[language].shortcutErrors.unsupportedKey).not.toBe('')
     }
   })
+
+  it('provides automatic update labels in each language', () => {
+    for (const { value: language } of LANGUAGE_OPTIONS) {
+      expect(UI_TEXT[language].updates.idle).not.toBe('')
+      expect(UI_TEXT[language].updates.checking).not.toBe('')
+      expect(UI_TEXT[language].updates.available).toContain('{version}')
+      expect(UI_TEXT[language].updates.downloading).toContain('{progress}')
+      expect(UI_TEXT[language].updates.check).not.toBe('')
+      expect(UI_TEXT[language].updates.install).not.toBe('')
+    }
+  })
 })

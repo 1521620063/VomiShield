@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react'
 import './App.css'
 import {
   ANCHOR_STYLE_CONFIGS,
@@ -38,6 +45,12 @@ import {
   createSettingsCommitter,
   type SettingsCommitStatus,
 } from './settingsCommit'
+import {
+  checkForAppUpdate,
+  installUpdateAndRelaunch,
+  type AvailableUpdateInfo,
+  type PendingUpdate,
+} from './autoUpdate'
 
 const ANCHOR_STYLE_VALUES: AnchorStyle[] = [
   'crosshair',
@@ -62,10 +75,30 @@ type UiStatus =
   | { kind: SimpleStatusKind }
   | { kind: 'saveFailed' | 'syncFailed'; detail: string }
 
+type AutoUpdateStatus =
+  | { kind: 'idle' }
+  | { kind: 'checking' }
+  | { kind: 'available'; update: AvailableUpdateInfo }
+  | { kind: 'notAvailable' }
+  | {
+      kind: 'downloading'
+      update: AvailableUpdateInfo
+      downloadedBytes: number
+      contentLength?: number
+    }
+  | { kind: 'installing'; update: AvailableUpdateInfo }
+  | { kind: 'relaunching'; update: AvailableUpdateInfo }
+  | { kind: 'failed'; detail: string }
+
 function App() {
   const isOverlay = window.location.hash === '#/overlay'
   const [settings, setSettings] = useState<OverlaySettings>(DEFAULT_SETTINGS)
   const [status, setStatus] = useState<UiStatus>({ kind: 'ready' })
+  const [autoUpdateStatus, setAutoUpdateStatus] = useState<AutoUpdateStatus>({
+    kind: 'idle',
+  })
+  const [pendingUpdate, setPendingUpdate] = useState<PendingUpdate>()
+  const autoUpdateBusyRef = useRef(false)
   const [isRecordingShortcut, setIsRecordingShortcut] = useState(false)
   const [shortcutError, setShortcutError] = useState<
     keyof ReturnType<typeof getUiText>['shortcutErrors'] | undefined
@@ -104,6 +137,75 @@ function App() {
   const currentStyleConfig = ANCHOR_STYLE_CONFIGS[normalizedSettings.style]
   const partOptions = Object.keys(currentStyleConfig.parts) as AnchorPart[]
 
+  const checkForUpdates = useCallback(
+    async (source: 'automatic' | 'manual' = 'manual') => {
+      if (autoUpdateBusyRef.current) {
+        return
+      }
+
+      autoUpdateBusyRef.current = true
+      setPendingUpdate(undefined)
+      setAutoUpdateStatus({ kind: 'checking' })
+
+      try {
+        const update = await checkForAppUpdate()
+
+        if (update) {
+          setPendingUpdate(update)
+          setAutoUpdateStatus({ kind: 'available', update: update.info })
+        } else {
+          setAutoUpdateStatus(
+            source === 'automatic' ? { kind: 'idle' } : { kind: 'notAvailable' },
+          )
+        }
+      } catch (error) {
+        setAutoUpdateStatus({ kind: 'failed', detail: formatError(error) })
+      } finally {
+        autoUpdateBusyRef.current = false
+      }
+    },
+    [],
+  )
+
+  const installPendingUpdate = useCallback(async () => {
+    if (!pendingUpdate || autoUpdateBusyRef.current) {
+      return
+    }
+
+    autoUpdateBusyRef.current = true
+    const updateInfo = pendingUpdate.info
+
+    try {
+      setAutoUpdateStatus({
+        kind: 'downloading',
+        update: updateInfo,
+        downloadedBytes: 0,
+      })
+
+      await installUpdateAndRelaunch(pendingUpdate, (progress) => {
+        switch (progress.kind) {
+          case 'downloading':
+            setAutoUpdateStatus({
+              kind: 'downloading',
+              update: updateInfo,
+              downloadedBytes: progress.downloadedBytes,
+              contentLength: progress.contentLength,
+            })
+            break
+          case 'installing':
+            setAutoUpdateStatus({ kind: 'installing', update: updateInfo })
+            break
+          case 'relaunching':
+            setAutoUpdateStatus({ kind: 'relaunching', update: updateInfo })
+            break
+        }
+      })
+    } catch (error) {
+      autoUpdateBusyRef.current = false
+      setAutoUpdateStatus({ kind: 'failed', detail: formatError(error) })
+    }
+  }, [pendingUpdate])
+
   useEffect(() => {
     applyDocumentViewMode(document, isOverlay)
 
@@ -126,6 +228,14 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = settings.language === 'zh' ? 'zh-CN' : 'en'
   }, [settings.language])
+
+  useEffect(() => {
+    if (isOverlay) {
+      return
+    }
+
+    void checkForUpdates('automatic')
+  }, [checkForUpdates, isOverlay])
 
   const commitPatch = useCallback((patch: Partial<OverlaySettings>) => {
     settingsCommitter.commitPatch(patch)
@@ -407,6 +517,24 @@ function App() {
           />
         </div>
 
+        <div className="update-row">
+          <span>{formatAutoUpdateStatus(autoUpdateStatus, text)}</span>
+          <div className="update-actions">
+            <button
+              type="button"
+              onClick={() => void checkForUpdates('manual')}
+              disabled={isAutoUpdateBusy(autoUpdateStatus)}
+            >
+              {text.updates.check}
+            </button>
+            {autoUpdateStatus.kind === 'available' ? (
+              <button type="button" onClick={() => void installPendingUpdate()}>
+                {text.updates.install}
+              </button>
+            ) : null}
+          </div>
+        </div>
+
         <footer className="footer-row">
           <span>{formatStatus(status, text)}</span>
           <span>
@@ -554,6 +682,50 @@ function formatStatus(status: UiStatus, text: ReturnType<typeof getUiText>) {
   }
 
   return label
+}
+
+function isAutoUpdateBusy(status: AutoUpdateStatus) {
+  return (
+    status.kind === 'checking' ||
+    status.kind === 'downloading' ||
+    status.kind === 'installing' ||
+    status.kind === 'relaunching'
+  )
+}
+
+function formatAutoUpdateStatus(
+  status: AutoUpdateStatus,
+  text: ReturnType<typeof getUiText>,
+) {
+  switch (status.kind) {
+    case 'idle':
+      return text.updates.idle
+    case 'checking':
+      return text.updates.checking
+    case 'available':
+      return text.updates.available.replace('{version}', status.update.version)
+    case 'notAvailable':
+      return text.updates.notAvailable
+    case 'downloading':
+      return text.updates.downloading.replace(
+        '{progress}',
+        formatDownloadProgress(status.downloadedBytes, status.contentLength),
+      )
+    case 'installing':
+      return text.updates.installing
+    case 'relaunching':
+      return text.updates.relaunching
+    case 'failed':
+      return `${text.updates.failed}${text.statusDetailSeparator}${status.detail}`
+  }
+}
+
+function formatDownloadProgress(downloadedBytes: number, contentLength?: number) {
+  if (contentLength && contentLength > 0) {
+    return `${Math.min(100, Math.round((downloadedBytes / contentLength) * 100))}%`
+  }
+
+  return `${Math.round(downloadedBytes / 1024)} KB`
 }
 
 export default App
