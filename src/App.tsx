@@ -112,6 +112,7 @@ function App() {
             <div>
               <h1>VomiShield</h1>
               <p>{text.tagline}</p>
+              <p className="compatibility-note">{text.compatibilityNote}</p>
             </div>
           </div>
           <div className="header-actions">

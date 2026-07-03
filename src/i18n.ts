@@ -42,6 +42,7 @@ type StatusLabels = {
 
 type UiText = {
   tagline: string
+  compatibilityNote: string
   languageSwitchLabel: string
   powerOn: string
   powerOff: string
@@ -55,6 +56,7 @@ type UiText = {
 export const UI_TEXT = {
   zh: {
     tagline: '为窗口化和无边框 3D 游戏提供稳定的视觉锚点。',
+    compatibilityNote: '仅在无边框窗口化或窗口化模式生效，全屏模式不生效。',
     languageSwitchLabel: '切换界面语言',
     powerOn: '开',
     powerOff: '关',
@@ -91,6 +93,7 @@ export const UI_TEXT = {
   },
   en: {
     tagline: 'Stable visual anchors for windowed and borderless 3D games.',
+    compatibilityNote: 'Works only in borderless windowed or windowed mode, not fullscreen.',
     languageSwitchLabel: 'Switch interface language',
     powerOn: 'On',
     powerOff: 'Off',

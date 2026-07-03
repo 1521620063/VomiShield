@@ -1,24 +1,25 @@
 .shell {
+  box-sizing: border-box;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 32px;
   background:
-    linear-gradient(135deg, rgba(111, 240, 194, 0.09), transparent 34%),
+    linear-gradient(135deg, rgba(111, 240, 194, 0.12), transparent 34%),
     #f5f7f6;
   color: #16201d;
 }
 
 .panel {
-  width: min(760px, 100%);
+  width: min(800px, 100%);
   border: 1px solid #d7dfdc;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 60px rgba(27, 43, 38, 0.12);
+  box-shadow: 0 18px 60px rgba(27, 43, 38, 0.13);
 }
 
 .control-panel {
-  padding: 28px;
+  padding: 28px 28px 26px;
 }
 
 .title-row,
@@ -89,6 +90,12 @@ p {
   color: #5c6d67;
 }
 
+.compatibility-note {
+  margin-top: 6px;
+  color: #7a8984;
+  font-size: 13px;
+}
+
 .power {
   width: 72px;
   height: 44px;
@@ -107,8 +114,8 @@ p {
 }
 
 .preview-frame {
-  height: 260px;
-  margin: 28px 0;
+  height: 224px;
+  margin: 24px 0 18px;
   overflow: hidden;
   border: 1px solid #d5dfdb;
   border-radius: 8px;
@@ -120,15 +127,29 @@ p {
 .controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e0e8e5;
+  border-radius: 8px;
+  background: #f7faf9;
 }
 
 .field {
   display: grid;
   gap: 8px;
+  min-height: 0;
+  padding: 8px 10px;
+  border: 1px solid #e3ebe8;
+  border-radius: 8px;
+  background: #ffffff;
   color: #30413c;
   font-size: 13px;
   font-weight: 700;
+  box-shadow: 0 1px 2px rgba(27, 43, 38, 0.04);
+}
+
+.field span {
+  line-height: 1.2;
 }
 
 .field select,
@@ -137,17 +158,24 @@ p {
 }
 
 .field select {
-  height: 40px;
+  height: 34px;
   border: 1px solid #cbd7d3;
   border-radius: 6px;
-  padding: 0 10px;
+  padding: 0 12px;
   background: #ffffff;
   color: #17211e;
+  font-weight: 700;
+}
+
+.field input[type='range'] {
+  height: 22px;
+  accent-color: #087ccf;
 }
 
 .range-field {
-  grid-template-columns: 118px 1fr 64px;
+  grid-template-columns: 86px minmax(112px, 1fr) 58px;
   align-items: center;
+  min-height: 44px;
 }
 
 .range-field span {
@@ -156,21 +184,23 @@ p {
 
 .range-field output {
   text-align: right;
-  color: #5d6d68;
+  color: #41524d;
   font-variant-numeric: tabular-nums;
+  font-weight: 800;
 }
 
 .color-field input {
   width: 64px;
-  height: 40px;
+  height: 30px;
   border: 1px solid #cbd7d3;
   border-radius: 6px;
   background: #ffffff;
+  cursor: pointer;
 }
 
 .footer-row {
-  margin-top: 22px;
-  padding-top: 16px;
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid #e1e8e5;
   color: #667772;
   font-size: 13px;
@@ -378,5 +408,10 @@ body[data-view='overlay'] {
 
   .controls {
     grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .range-field {
+    grid-template-columns: 78px minmax(0, 1fr) 56px;
   }
 }
