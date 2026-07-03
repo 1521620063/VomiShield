@@ -114,7 +114,7 @@ p {
 }
 
 .preview-frame {
-  height: 224px;
+  aspect-ratio: 16 / 9;
   margin: 24px 0 18px;
   overflow: hidden;
   border: 1px solid #d5dfdb;
