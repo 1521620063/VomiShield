@@ -40,6 +40,7 @@ pub struct AnchorPartSettings {
     pub thickness: u8,
     pub color: String,
     pub glow: f32,
+    pub inset: u16,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -202,6 +203,7 @@ struct RawAnchorPartSettings {
     thickness: Option<u8>,
     color: Option<String>,
     glow: Option<f32>,
+    inset: Option<u16>,
 }
 
 impl RawAnchorPartSettings {
@@ -212,6 +214,7 @@ impl RawAnchorPartSettings {
             thickness: self.thickness.unwrap_or(default.thickness),
             color: self.color.unwrap_or(default.color),
             glow: self.glow.unwrap_or(default.glow),
+            inset: self.inset.unwrap_or(default.inset),
         }
     }
 }
@@ -261,8 +264,9 @@ impl OverlaySettings {
                 let (min_size, max_size) = size_range_for_part(style, *part);
                 part_settings.opacity = part_settings.opacity.clamp(0.05, 1.0);
                 part_settings.size = part_settings.size.clamp(min_size, max_size);
-                part_settings.thickness = part_settings.thickness.clamp(1, 8);
+                part_settings.thickness = part_settings.thickness.clamp(1, 16);
                 part_settings.glow = part_settings.glow.clamp(0.0, 1.0);
+                part_settings.inset = part_settings.inset.clamp(0, 320);
             }
         }
 
@@ -419,15 +423,15 @@ fn size_range_for_part(style: AnchorStyle, part: AnchorPart) -> (u16, u16) {
         (AnchorStyle::FullGuide, AnchorPart::Center) => (32, 220),
         (AnchorStyle::Horizontal, AnchorPart::Main) => (80, 640),
         (AnchorStyle::Vertical, AnchorPart::Main) => (80, 640),
-        (AnchorStyle::CornerBrackets, AnchorPart::Main) => (48, 360),
+        (AnchorStyle::CornerBrackets, AnchorPart::Main) => (48, 640),
         (AnchorStyle::BoxCircle, AnchorPart::Center)
         | (AnchorStyle::EdgeBars, AnchorPart::Center)
         | (AnchorStyle::TBars, AnchorPart::Center)
         | (AnchorStyle::DotMatrix, AnchorPart::Center) => (40, 260),
         (AnchorStyle::BoxCircle, AnchorPart::Outer)
         | (AnchorStyle::TBars, AnchorPart::Outer)
-        | (AnchorStyle::DotMatrix, AnchorPart::Outer) => (48, 360),
-        (AnchorStyle::EdgeBars, AnchorPart::Outer) => (64, 420),
+        | (AnchorStyle::DotMatrix, AnchorPart::Outer) => (48, 640),
+        (AnchorStyle::EdgeBars, AnchorPart::Outer) => (64, 640),
         _ => (32, 360),
     }
 }
@@ -519,6 +523,7 @@ fn default_part_settings() -> AnchorPartSettings {
         thickness: 2,
         color: "#6ff0c2".to_string(),
         glow: 0.42,
+        inset: 28,
     }
 }
 
@@ -607,10 +612,35 @@ mod tests {
 
         assert_eq!(box_circle.backdrop, 0.45);
         assert_eq!(outer.opacity, 1.0);
-        assert_eq!(outer.size, 360);
-        assert_eq!(outer.thickness, 8);
+        assert_eq!(outer.size, 640);
+        assert_eq!(outer.thickness, 16);
         assert_eq!(outer.glow, 1.0);
         assert_eq!(settings.offset_y, 240);
+    }
+
+    #[test]
+    fn corner_bracket_inset_defaults_and_clamps() {
+        let mut settings = OverlaySettings::default();
+        let corner = settings
+            .style_settings
+            .get_mut(&AnchorStyle::CornerBrackets)
+            .expect("cornerBrackets settings");
+        let main = corner
+            .parts
+            .get_mut(&AnchorPart::Main)
+            .expect("main settings");
+
+        assert_eq!(main.inset, 28);
+        main.inset = 999;
+
+        let settings = settings
+            .validated()
+            .expect("settings should be valid after numeric clamping");
+
+        assert_eq!(
+            settings.style_settings[&AnchorStyle::CornerBrackets].parts[&AnchorPart::Main].inset,
+            320
+        );
     }
 
     #[test]
@@ -639,7 +669,7 @@ mod tests {
             .parts
             .get_mut(&AnchorPart::Outer)
             .expect("outer settings")
-            .size = 420;
+            .size = 999;
         settings
             .style_settings
             .get_mut(&AnchorStyle::Ring)
@@ -663,7 +693,7 @@ mod tests {
         );
         assert_eq!(
             settings.style_settings[&AnchorStyle::EdgeBars].parts[&AnchorPart::Outer].size,
-            420
+            640
         );
         assert_eq!(
             settings.style_settings[&AnchorStyle::Ring].parts[&AnchorPart::Main].size,
@@ -712,6 +742,7 @@ mod tests {
                 thickness: 4,
                 color: "#ffcc66".to_string(),
                 glow: 0.6,
+                inset: 36,
             },
         );
         let mut style_settings = HashMap::new();

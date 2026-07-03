@@ -145,6 +145,7 @@ describe('settings helpers', () => {
                 thickness: 3,
                 color: '#00ff00',
                 glow: 0.2,
+                inset: 28,
               },
               outer: {
                 opacity: 0.5,
@@ -152,6 +153,7 @@ describe('settings helpers', () => {
                 thickness: 4,
                 color: '#ffffff',
                 glow: 0.8,
+                inset: 36,
               },
             },
           },
@@ -198,6 +200,7 @@ describe('settings helpers', () => {
       thickness: 5,
       color: '#ffcc66',
       glow: 0.75,
+      inset: 28,
     })
     expect(settings.styleSettings.boxCircle.parts.outer).toEqual({
       opacity: 0.31,
@@ -205,6 +208,7 @@ describe('settings helpers', () => {
       thickness: 5,
       color: '#ffcc66',
       glow: 0.75,
+      inset: 28,
     })
     expect(settings.styleSettings.crosshair.parts.main).toEqual(
       DEFAULT_SETTINGS.styleSettings.crosshair.parts.main,
@@ -238,6 +242,7 @@ describe('settings helpers', () => {
         thickness: 5,
         color: '#ffcc66',
         glow: 0.75,
+        inset: 28,
       })
     },
   )
@@ -278,7 +283,126 @@ describe('settings helpers', () => {
 
     expect(activePartConfig(settings)).toMatchObject({
       labelKey: 'settings.parts.outer',
-      size: { min: 48, max: 360, step: 4 },
+      size: { min: 48, max: 640, step: 4 },
+    })
+  })
+
+  it('keeps corner bracket inset independent from size', () => {
+    const settings = normalizeOverlaySettings({
+      ...DEFAULT_SETTINGS,
+      style: 'cornerBrackets',
+      styleSettings: {
+        ...DEFAULT_SETTINGS.styleSettings,
+        cornerBrackets: {
+          ...DEFAULT_SETTINGS.styleSettings.cornerBrackets,
+          parts: {
+            main: {
+              opacity: 0.72,
+              size: 240,
+              thickness: 2,
+              color: '#6ff0c2',
+              glow: 0.42,
+              inset: 36,
+            },
+          },
+        },
+      },
+    })
+
+    expect(activePartConfig(settings)).toMatchObject({
+      supportsInset: true,
+      size: { min: 48, max: 640, step: 4 },
+      inset: { min: 0, max: 320, step: 2 },
+    })
+    expect(overlayCssVars(settings)).toMatchObject({
+      '--anchor-size': '240px',
+      '--anchor-inset': '36px',
+      '--edge-anchor-inset': '36px',
+    })
+  })
+
+  it.each([
+    ['horizontal', 'main'],
+    ['vertical', 'main'],
+    ['fullGuide', 'guide'],
+  ] as const)(
+    'marks %s %s as not size editable',
+    (style, activePart) => {
+      const settings = normalizeOverlaySettings({
+        ...DEFAULT_SETTINGS,
+        style,
+        styleSettings: {
+          ...DEFAULT_SETTINGS.styleSettings,
+          [style]: {
+            ...DEFAULT_SETTINGS.styleSettings[style],
+            activePart,
+          },
+        },
+      })
+
+      expect(activePartConfig(settings)).toMatchObject({
+        supportsSize: false,
+      })
+    },
+  )
+
+  it('keeps the full guide center mark size editable', () => {
+    const settings = normalizeOverlaySettings({
+      ...DEFAULT_SETTINGS,
+      style: 'fullGuide',
+      styleSettings: {
+        ...DEFAULT_SETTINGS.styleSettings,
+        fullGuide: {
+          ...DEFAULT_SETTINGS.styleSettings.fullGuide,
+          activePart: 'center',
+        },
+      },
+    })
+
+    expect(activePartConfig(settings)).toMatchObject({
+      supportsSize: true,
+    })
+  })
+
+  it.each([
+    ['boxCircle', 'outer'],
+    ['edgeBars', 'outer'],
+  ] as const)(
+    'marks %s %s as not thickness editable',
+    (style, activePart) => {
+      const settings = normalizeOverlaySettings({
+        ...DEFAULT_SETTINGS,
+        style,
+        styleSettings: {
+          ...DEFAULT_SETTINGS.styleSettings,
+          [style]: {
+            ...DEFAULT_SETTINGS.styleSettings[style],
+            activePart,
+          },
+        },
+      })
+
+      expect(activePartConfig(settings)).toMatchObject({
+        supportsThickness: false,
+      })
+    },
+  )
+
+  it('keeps t bars outer thickness editable', () => {
+    const settings = normalizeOverlaySettings({
+      ...DEFAULT_SETTINGS,
+      style: 'tBars',
+      styleSettings: {
+        ...DEFAULT_SETTINGS.styleSettings,
+        tBars: {
+          ...DEFAULT_SETTINGS.styleSettings.tBars,
+          activePart: 'outer',
+        },
+      },
+    })
+
+    expect(activePartConfig(settings)).toMatchObject({
+      supportsThickness: true,
     })
   })
 

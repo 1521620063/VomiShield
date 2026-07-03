@@ -321,31 +321,49 @@ function App() {
             />
           </label>
 
-          <RangeField
-            label={text.fields.size}
-            min={selectedPartConfig.size.min}
-            max={selectedPartConfig.size.max}
-            step={selectedPartConfig.size.step}
-            value={activePart.size}
-            suffix="px"
-            onChange={(size) =>
-              commitPatch(patchActivePartSettings(normalizedSettings, { size }))
-            }
-          />
+          {selectedPartConfig.supportsSize ? (
+            <RangeField
+              label={text.fields.size}
+              min={selectedPartConfig.size.min}
+              max={selectedPartConfig.size.max}
+              step={selectedPartConfig.size.step}
+              value={activePart.size}
+              suffix="px"
+              onChange={(size) =>
+                commitPatch(patchActivePartSettings(normalizedSettings, { size }))
+              }
+            />
+          ) : null}
 
-          <RangeField
-            label={text.fields.thickness}
-            min={1}
-            max={8}
-            step={1}
-            value={activePart.thickness}
-            suffix="px"
-            onChange={(thickness) =>
-              commitPatch(
-                patchActivePartSettings(normalizedSettings, { thickness }),
-              )
-            }
-          />
+          {selectedPartConfig.supportsThickness ? (
+            <RangeField
+              label={text.fields.thickness}
+              min={1}
+              max={16}
+              step={1}
+              value={activePart.thickness}
+              suffix="px"
+              onChange={(thickness) =>
+                commitPatch(
+                  patchActivePartSettings(normalizedSettings, { thickness }),
+                )
+              }
+            />
+          ) : null}
+
+          {selectedPartConfig.supportsInset ? (
+            <RangeField
+              label={text.fields.inset}
+              min={selectedPartConfig.inset.min}
+              max={selectedPartConfig.inset.max}
+              step={selectedPartConfig.inset.step}
+              value={activePart.inset}
+              suffix="px"
+              onChange={(inset) =>
+                commitPatch(patchActivePartSettings(normalizedSettings, { inset }))
+              }
+            />
+          ) : null}
 
           <RangeField
             label={text.fields.glow}

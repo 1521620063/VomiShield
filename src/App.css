@@ -221,12 +221,22 @@ p {
 }
 
 .color-field input {
-  width: 64px;
+  width: 100%;
   height: 30px;
   border: 1px solid #cbd7d3;
   border-radius: 6px;
   background: #ffffff;
   cursor: pointer;
+}
+
+.color-field {
+  grid-template-columns: 86px minmax(0, 1fr);
+  align-items: center;
+  min-height: 44px;
+}
+
+.color-field span {
+  white-space: nowrap;
 }
 
 .shortcut-field {
@@ -284,6 +294,7 @@ p {
   --anchor-thickness: 2px;
   --anchor-color: #6ff0c2;
   --anchor-glow: 0.42;
+  --anchor-inset: 28px;
   --anchor-main-opacity: var(--overlay-opacity);
   --anchor-main-size: var(--anchor-size);
   --anchor-main-thickness: var(--anchor-thickness);
@@ -311,7 +322,7 @@ p {
   --anchor-edge-glow: var(--anchor-glow);
   --backdrop-opacity: 0;
   --anchor-offset-y: 0px;
-  --edge-anchor-inset: max(28px, calc(var(--anchor-size) * 0.18));
+  --edge-anchor-inset: var(--anchor-inset);
   --outer-anchor-inset: max(28px, calc(var(--anchor-outer-size) * 0.18));
   position: fixed;
   inset: 0;

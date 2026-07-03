@@ -22,6 +22,15 @@ body,
   margin: 0;
 }
 
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
 html[data-view='overlay'],
 body[data-view='overlay'],
 html[data-view='overlay'] body,

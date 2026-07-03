@@ -38,6 +38,7 @@ type FieldLabels = {
   color: string
   size: string
   thickness: string
+  inset: string
   glow: string
   backdrop: string
   offsetY: string
@@ -90,6 +91,7 @@ export const UI_TEXT = {
       color: '颜色',
       size: '尺寸',
       thickness: '线宽',
+      inset: '向内收缩',
       glow: '发光',
       backdrop: '背景压暗',
       offsetY: '垂直偏移',
@@ -147,6 +149,7 @@ export const UI_TEXT = {
       color: 'Color',
       size: 'Size',
       thickness: 'Thickness',
+      inset: 'Inset',
       glow: 'Glow',
       backdrop: 'Background dim',
       offsetY: 'Vertical offset',

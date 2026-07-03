@@ -21,6 +21,7 @@ export type AnchorPartSettings = {
   thickness: number
   color: string
   glow: number
+  inset: number
 }
 
 export type AnchorStyleSettings = {
@@ -32,7 +33,15 @@ export type AnchorStyleSettings = {
 export type AnchorPartConfig = {
   labelKey: string
   defaults: AnchorPartSettings
+  supportsSize: boolean
+  supportsThickness: boolean
+  supportsInset: boolean
   size: {
+    min: number
+    max: number
+    step: number
+  }
+  inset: {
     min: number
     max: number
     step: number
@@ -56,20 +65,29 @@ const DEFAULT_PART_VISUALS = {
 
 const DEFAULT_BACKDROP = 0
 const DEFAULT_SIZE_CONFIG = { min: 32, max: 320, step: 2 }
+const DEFAULT_INSET_CONFIG = { min: 0, max: 320, step: 2 }
 
 function partConfig(
   part: AnchorPart,
   overrides: Partial<AnchorPartSettings> = {},
   size = DEFAULT_SIZE_CONFIG,
+  supportsSize = true,
+  supportsThickness = true,
+  supportsInset = false,
 ): AnchorPartConfig {
   return {
     labelKey: `settings.parts.${part}`,
+    supportsSize,
+    supportsThickness,
+    supportsInset,
     defaults: {
       ...DEFAULT_PART_VISUALS,
       size: 120,
+      inset: 28,
       ...overrides,
     },
     size,
+    inset: DEFAULT_INSET_CONFIG,
   }
 }
 
@@ -96,6 +114,7 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
         'guide',
         { opacity: 0.5, size: 160 },
         { min: 80, max: 640, step: 8 },
+        false,
       ),
       center: partConfig(
         'center',
@@ -112,6 +131,7 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
         'main',
         { opacity: 0.62, size: 160 },
         { min: 80, max: 640, step: 8 },
+        false,
       ),
     },
   },
@@ -123,6 +143,7 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
         'main',
         { opacity: 0.62, size: 160 },
         { min: 80, max: 640, step: 8 },
+        false,
       ),
     },
   },
@@ -130,7 +151,14 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
     defaultBackdrop: DEFAULT_BACKDROP,
     defaultPart: 'main',
     parts: {
-      main: partConfig('main', { size: 136 }, { min: 48, max: 360, step: 4 }),
+      main: partConfig(
+        'main',
+        { size: 136 },
+        { min: 48, max: 640, step: 4 },
+        true,
+        true,
+        true,
+      ),
     },
   },
   boxCircle: {
@@ -145,7 +173,9 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
       outer: partConfig(
         'outer',
         { size: 148 },
-        { min: 48, max: 360, step: 4 },
+        { min: 48, max: 640, step: 4 },
+        true,
+        false,
       ),
     },
   },
@@ -161,7 +191,9 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
       outer: partConfig(
         'outer',
         { size: 180 },
-        { min: 64, max: 420, step: 4 },
+        { min: 64, max: 640, step: 4 },
+        true,
+        false,
       ),
     },
   },
@@ -177,7 +209,7 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
       outer: partConfig(
         'outer',
         { size: 132 },
-        { min: 48, max: 360, step: 4 },
+        { min: 48, max: 640, step: 4 },
       ),
     },
   },
@@ -193,7 +225,7 @@ export const ANCHOR_STYLE_CONFIGS: Record<AnchorStyle, AnchorStyleConfig> = {
       outer: partConfig(
         'outer',
         { size: 148 },
-        { min: 48, max: 360, step: 4 },
+        { min: 48, max: 640, step: 4 },
       ),
     },
   },
@@ -416,6 +448,8 @@ export function overlayCssVars(
     '--anchor-thickness': `${partSettings.thickness}px`,
     '--anchor-color': partSettings.color,
     '--anchor-glow': String(partSettings.glow),
+    '--anchor-inset': `${partSettings.inset}px`,
+    '--edge-anchor-inset': `${partSettings.inset}px`,
     '--backdrop-opacity': String(styleSettings.backdrop),
     '--anchor-offset-y': `${normalized.offsetY}px`,
   }
@@ -430,6 +464,7 @@ export function overlayCssVars(
     vars[`--anchor-${part}-thickness`] = `${settings.thickness}px`
     vars[`--anchor-${part}-color`] = settings.color
     vars[`--anchor-${part}-glow`] = String(settings.glow)
+    vars[`--anchor-${part}-inset`] = `${settings.inset}px`
   }
 
   return vars
