@@ -11,7 +11,7 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     utils::config::Color,
-    Emitter, Manager, State, Wry,
+    Emitter, Manager, State, WindowEvent, Wry,
 };
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
@@ -133,6 +133,18 @@ fn show_main_window(app: &tauri::AppHandle) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+    }
+}
+
+fn configure_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let window_to_hide = window.clone();
+        window.on_window_event(move |event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window_to_hide.hide();
+            }
+        });
     }
 }
 
@@ -277,6 +289,7 @@ pub fn run() {
             });
 
             configure_overlay_window(app.handle(), settings.enabled);
+            configure_main_window(app.handle());
             register_shortcut(app)?;
 
             Ok(())
