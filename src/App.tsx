@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import './App.css'
 import {
+  ANCHOR_STYLE_CONFIGS,
   DEFAULT_SETTINGS,
+  activeAnchorPartSettings,
+  activeAnchorStyleSettings,
+  activePartConfig,
   formatKeyboardShortcut,
+  normalizeOverlaySettings,
   overlayRenderAttributes,
   overlayCssVars,
+  patchActivePartSettings,
+  patchActiveStyleSettings,
   shortcutFromKeyboardEvent,
+  type AnchorPart,
   type AnchorStyle,
   type KeyboardShortcutEvent,
   type OverlaySettings,
@@ -75,7 +83,25 @@ function App() {
       }),
     [],
   )
-  const text = getUiText(settings.language)
+  const normalizedSettings = useMemo(
+    () => normalizeOverlaySettings(settings),
+    [settings],
+  )
+  const text = getUiText(normalizedSettings.language)
+  const activeStyle = useMemo(
+    () => activeAnchorStyleSettings(normalizedSettings),
+    [normalizedSettings],
+  )
+  const activePart = useMemo(
+    () => activeAnchorPartSettings(normalizedSettings),
+    [normalizedSettings],
+  )
+  const selectedPartConfig = useMemo(
+    () => activePartConfig(normalizedSettings),
+    [normalizedSettings],
+  )
+  const currentStyleConfig = ANCHOR_STYLE_CONFIGS[normalizedSettings.style]
+  const partOptions = Object.keys(currentStyleConfig.parts) as AnchorPart[]
 
   useEffect(() => {
     applyDocumentViewMode(document, isOverlay)
@@ -151,10 +177,13 @@ function App() {
     }
   }, [isRecordingShortcut, recordShortcut])
 
-  const overlayVars = useMemo(() => overlayCssVars(settings), [settings])
+  const overlayVars = useMemo(
+    () => overlayCssVars(normalizedSettings),
+    [normalizedSettings],
+  )
 
   if (isOverlay) {
-    return <OverlaySurface settings={settings} style={overlayVars} />
+    return <OverlaySurface settings={normalizedSettings} style={overlayVars} />
   }
 
   return (
@@ -179,8 +208,10 @@ function App() {
                 <button
                   key={option.value}
                   type="button"
-                  className={settings.language === option.value ? 'is-active' : ''}
-                  aria-pressed={settings.language === option.value}
+                  className={
+                    normalizedSettings.language === option.value ? 'is-active' : ''
+                  }
+                  aria-pressed={normalizedSettings.language === option.value}
                   onClick={() => setLanguage(option.value)}
                 >
                   {option.label}
@@ -189,7 +220,7 @@ function App() {
             </div>
             <button
               type="button"
-              className={settings.enabled ? 'power is-on' : 'power'}
+              className={normalizedSettings.enabled ? 'power is-on' : 'power'}
               onClick={async () => {
                 const next = await toggleOverlay()
                 settingsCommitter.replaceSettings(next)
@@ -198,20 +229,20 @@ function App() {
                 })
               }}
             >
-              {settings.enabled ? text.powerOn : text.powerOff}
+              {normalizedSettings.enabled ? text.powerOn : text.powerOff}
             </button>
           </div>
         </div>
 
         <div className="preview-frame">
-          <OverlaySurface settings={settings} style={overlayVars} preview />
+          <OverlaySurface settings={normalizedSettings} style={overlayVars} preview />
         </div>
 
         <div className="controls">
           <label className="field">
             <span>{text.fields.anchorStyle}</span>
             <select
-              value={settings.style}
+              value={normalizedSettings.style}
               onChange={(event) =>
                 commitPatch({ style: event.target.value as AnchorStyle })
               }
@@ -224,9 +255,35 @@ function App() {
             </select>
           </label>
 
+          {partOptions.length > 1 ? (
+            <div
+              className="part-switch"
+              role="group"
+              aria-label={text.fields.anchorPart}
+            >
+              {partOptions.map((part) => (
+                <button
+                  key={part}
+                  type="button"
+                  className={activeStyle.activePart === part ? 'is-active' : ''}
+                  aria-pressed={activeStyle.activePart === part}
+                  onClick={() =>
+                    commitPatch(
+                      patchActiveStyleSettings(normalizedSettings, {
+                        activePart: part,
+                      }),
+                    )
+                  }
+                >
+                  {text.anchorParts[part]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <ShortcutField
             label={text.fields.shortcut}
-            value={settings.shortcut}
+            value={normalizedSettings.shortcut}
             recording={isRecordingShortcut}
             recordingLabel={text.shortcutRecording}
             hint={text.shortcutHint}
@@ -242,28 +299,38 @@ function App() {
             min={0.05}
             max={1}
             step={0.01}
-            value={settings.opacity}
+            value={activePart.opacity}
             suffix=""
-            onChange={(opacity) => commitPatch({ opacity })}
+            onChange={(opacity) =>
+              commitPatch(patchActivePartSettings(normalizedSettings, { opacity }))
+            }
           />
 
           <label className="field color-field">
             <span>{text.fields.color}</span>
             <input
               type="color"
-              value={settings.color}
-              onChange={(event) => commitPatch({ color: event.target.value })}
+              value={activePart.color}
+              onChange={(event) =>
+                commitPatch(
+                  patchActivePartSettings(normalizedSettings, {
+                    color: event.target.value,
+                  }),
+                )
+              }
             />
           </label>
 
           <RangeField
             label={text.fields.size}
-            min={32}
-            max={360}
-            step={1}
-            value={settings.size}
+            min={selectedPartConfig.size.min}
+            max={selectedPartConfig.size.max}
+            step={selectedPartConfig.size.step}
+            value={activePart.size}
             suffix="px"
-            onChange={(size) => commitPatch({ size })}
+            onChange={(size) =>
+              commitPatch(patchActivePartSettings(normalizedSettings, { size }))
+            }
           />
 
           <RangeField
@@ -271,9 +338,13 @@ function App() {
             min={1}
             max={8}
             step={1}
-            value={settings.thickness}
+            value={activePart.thickness}
             suffix="px"
-            onChange={(thickness) => commitPatch({ thickness })}
+            onChange={(thickness) =>
+              commitPatch(
+                patchActivePartSettings(normalizedSettings, { thickness }),
+              )
+            }
           />
 
           <RangeField
@@ -281,9 +352,11 @@ function App() {
             min={0}
             max={1}
             step={0.01}
-            value={settings.glow}
+            value={activePart.glow}
             suffix=""
-            onChange={(glow) => commitPatch({ glow })}
+            onChange={(glow) =>
+              commitPatch(patchActivePartSettings(normalizedSettings, { glow }))
+            }
           />
 
           <RangeField
@@ -291,9 +364,13 @@ function App() {
             min={0}
             max={0.45}
             step={0.01}
-            value={settings.backdrop}
+            value={activeStyle.backdrop}
             suffix=""
-            onChange={(backdrop) => commitPatch({ backdrop })}
+            onChange={(backdrop) =>
+              commitPatch(
+                patchActiveStyleSettings(normalizedSettings, { backdrop }),
+              )
+            }
           />
 
           <RangeField
@@ -301,7 +378,7 @@ function App() {
             min={-240}
             max={240}
             step={1}
-            value={settings.offsetY}
+            value={normalizedSettings.offsetY}
             suffix="px"
             onChange={(offsetY) => commitPatch({ offsetY })}
           />
@@ -312,7 +389,7 @@ function App() {
           <span>
             {text.shortcut}
             {text.statusDetailSeparator}
-            {formatKeyboardShortcut(settings.shortcut)}
+            {formatKeyboardShortcut(normalizedSettings.shortcut)}
           </span>
         </footer>
       </section>

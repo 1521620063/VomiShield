@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { DEFAULT_SETTINGS, type OverlaySettings } from './settings'
+import {
+  DEFAULT_SETTINGS,
+  patchActivePartSettings,
+  type OverlaySettings,
+} from './settings'
 import { startSettingsSync } from './settingsSync'
 
 function flushPromises() {
@@ -60,10 +64,10 @@ describe('startSettingsSync', () => {
   })
 
   it('applies preview events immediately for the overlay window', async () => {
-    const previewSettings: OverlaySettings = {
-      ...DEFAULT_SETTINGS,
-      opacity: 0.33,
-    }
+    const previewSettings: OverlaySettings = patchActivePartSettings(
+      DEFAULT_SETTINGS,
+      { opacity: 0.33 },
+    )
     const applySettings = vi.fn()
 
     const stop = startSettingsSync({

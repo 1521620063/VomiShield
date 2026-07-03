@@ -22,8 +22,17 @@ type AnchorStyleLabels = {
   dotMatrix: string
 }
 
+type AnchorPartLabels = {
+  main: string
+  center: string
+  outer: string
+  guide: string
+  edge: string
+}
+
 type FieldLabels = {
   anchorStyle: string
+  anchorPart: string
   shortcut: string
   opacity: string
   color: string
@@ -53,6 +62,7 @@ type UiText = {
   powerOff: string
   fields: FieldLabels
   anchorStyles: AnchorStyleLabels
+  anchorParts: AnchorPartLabels
   statuses: StatusLabels
   statusDetailSeparator: string
   shortcut: string
@@ -74,6 +84,7 @@ export const UI_TEXT = {
     powerOff: '关',
     fields: {
       anchorStyle: '锚点样式',
+      anchorPart: '锚点部分',
       shortcut: '快捷键',
       opacity: '透明度',
       color: '颜色',
@@ -94,6 +105,13 @@ export const UI_TEXT = {
       edgeBars: '四向长条',
       tBars: 'T 形参考',
       dotMatrix: '点阵参考',
+    },
+    anchorParts: {
+      main: '整体',
+      center: '中间',
+      outer: '周围',
+      guide: '辅助线',
+      edge: '边缘',
     },
     statuses: {
       ready: '就绪',
@@ -123,6 +141,7 @@ export const UI_TEXT = {
     powerOff: 'Off',
     fields: {
       anchorStyle: 'Anchor style',
+      anchorPart: 'Anchor part',
       shortcut: 'Shortcut',
       opacity: 'Opacity',
       color: 'Color',
@@ -143,6 +162,13 @@ export const UI_TEXT = {
       edgeBars: 'Edge bars',
       tBars: 'T-bar target',
       dotMatrix: 'Dot matrix',
+    },
+    anchorParts: {
+      main: 'Whole',
+      center: 'Center',
+      outer: 'Outer',
+      guide: 'Guide',
+      edge: 'Edge',
     },
     statuses: {
       ready: 'Ready',
