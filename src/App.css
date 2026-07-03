@@ -78,6 +78,37 @@
   box-shadow: 0 1px 4px rgba(27, 43, 38, 0.12);
 }
 
+.part-switch {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  gap: 2px;
+  min-height: 52px;
+  padding: 2px;
+  align-self: stretch;
+  border: 1px solid #c9d5d1;
+  border-radius: 8px;
+  background: #eef3f1;
+}
+
+.part-switch button {
+  min-width: 0;
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #52635e;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.part-switch button.is-active {
+  background: #ffffff;
+  color: #16352c;
+  box-shadow: 0 1px 4px rgba(27, 43, 38, 0.12);
+}
+
 h1 {
   margin: 0;
   font-size: 32px;
@@ -253,6 +284,31 @@ p {
   --anchor-thickness: 2px;
   --anchor-color: #6ff0c2;
   --anchor-glow: 0.42;
+  --anchor-main-opacity: var(--overlay-opacity);
+  --anchor-main-size: var(--anchor-size);
+  --anchor-main-thickness: var(--anchor-thickness);
+  --anchor-main-color: var(--anchor-color);
+  --anchor-main-glow: var(--anchor-glow);
+  --anchor-center-opacity: var(--overlay-opacity);
+  --anchor-center-size: var(--anchor-size);
+  --anchor-center-thickness: var(--anchor-thickness);
+  --anchor-center-color: var(--anchor-color);
+  --anchor-center-glow: var(--anchor-glow);
+  --anchor-outer-opacity: var(--overlay-opacity);
+  --anchor-outer-size: var(--anchor-size);
+  --anchor-outer-thickness: var(--anchor-thickness);
+  --anchor-outer-color: var(--anchor-color);
+  --anchor-outer-glow: var(--anchor-glow);
+  --anchor-guide-opacity: var(--overlay-opacity);
+  --anchor-guide-size: var(--anchor-size);
+  --anchor-guide-thickness: var(--anchor-thickness);
+  --anchor-guide-color: var(--anchor-color);
+  --anchor-guide-glow: var(--anchor-glow);
+  --anchor-edge-opacity: var(--overlay-opacity);
+  --anchor-edge-size: var(--anchor-size);
+  --anchor-edge-thickness: var(--anchor-thickness);
+  --anchor-edge-color: var(--anchor-color);
+  --anchor-edge-glow: var(--anchor-glow);
   --backdrop-opacity: 0;
   --anchor-offset-y: 0px;
   --edge-anchor-inset: max(28px, calc(var(--anchor-size) * 0.18));
@@ -469,17 +525,29 @@ p {
 
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-horizontal {
   width: 100%;
-  opacity: calc(var(--overlay-opacity) * 0.68);
+  height: var(--anchor-guide-thickness);
+  background: var(--anchor-guide-color);
+  opacity: calc(var(--anchor-guide-opacity) * 0.68);
+  box-shadow: 0 0 calc(32px * var(--anchor-guide-glow)) var(--anchor-guide-color);
 }
 
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-vertical {
+  width: var(--anchor-guide-thickness);
   height: 100%;
-  opacity: calc(var(--overlay-opacity) * 0.68);
+  background: var(--anchor-guide-color);
+  opacity: calc(var(--anchor-guide-opacity) * 0.68);
+  box-shadow: 0 0 calc(32px * var(--anchor-guide-glow)) var(--anchor-guide-color);
 }
 
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-ring {
-  width: calc(var(--anchor-size) * 0.36);
-  height: calc(var(--anchor-size) * 0.36);
+  width: calc(var(--anchor-center-size) * 0.36);
+  height: calc(var(--anchor-center-size) * 0.36);
+  border-color: var(--anchor-center-color);
+  border-width: var(--anchor-center-thickness);
+  opacity: var(--anchor-center-opacity);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--anchor-center-color) 40%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--anchor-center-color) 20%, transparent);
 }
 
 .overlay-surface[data-anchor-style='fullGuide'] .anchor-corner {
@@ -540,12 +608,23 @@ p {
 }
 
 .overlay-surface[data-anchor-style='boxCircle'] .anchor-ring {
-  width: calc(var(--anchor-size) * 0.42);
-  height: calc(var(--anchor-size) * 0.42);
+  width: calc(var(--anchor-center-size) * 0.42);
+  height: calc(var(--anchor-center-size) * 0.42);
+  border-color: var(--anchor-center-color);
+  border-width: var(--anchor-center-thickness);
+  opacity: var(--anchor-center-opacity);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--anchor-center-color) 40%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--anchor-center-color) 20%, transparent);
 }
 
 .overlay-surface[data-anchor-style='boxCircle'] .anchor-box {
   display: block;
+  width: max(14px, calc(var(--anchor-outer-size) * 0.18));
+  height: max(14px, calc(var(--anchor-outer-size) * 0.18));
+  background: var(--anchor-outer-color);
+  opacity: var(--anchor-outer-opacity);
+  filter: drop-shadow(0 0 calc(20px * var(--anchor-outer-glow)) var(--anchor-outer-color));
 }
 
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-horizontal,
@@ -557,24 +636,33 @@ p {
 }
 
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-ring {
-  width: calc(var(--anchor-size) * 0.38);
-  height: calc(var(--anchor-size) * 0.38);
+  width: calc(var(--anchor-center-size) * 0.38);
+  height: calc(var(--anchor-center-size) * 0.38);
+  border-color: var(--anchor-center-color);
+  border-width: var(--anchor-center-thickness);
+  opacity: var(--anchor-center-opacity);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--anchor-center-color) 40%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--anchor-center-color) 20%, transparent);
 }
 
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box {
   display: block;
+  background: var(--anchor-outer-color);
+  opacity: var(--anchor-outer-opacity);
+  filter: drop-shadow(0 0 calc(20px * var(--anchor-outer-glow)) var(--anchor-outer-color));
 }
 
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box-top,
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box-bottom {
-  width: max(calc(var(--anchor-thickness) * 5), calc(var(--anchor-size) * 0.1));
-  height: calc(var(--anchor-size) * 0.42);
+  width: max(calc(var(--anchor-outer-thickness) * 5), calc(var(--anchor-outer-size) * 0.1));
+  height: calc(var(--anchor-outer-size) * 0.42);
 }
 
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box-left,
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box-right {
-  width: calc(var(--anchor-size) * 0.42);
-  height: max(calc(var(--anchor-thickness) * 5), calc(var(--anchor-size) * 0.1));
+  width: calc(var(--anchor-outer-size) * 0.42);
+  height: max(calc(var(--anchor-outer-thickness) * 5), calc(var(--anchor-outer-size) * 0.1));
 }
 
 .overlay-surface[data-anchor-style='tBars'] .anchor-horizontal,
@@ -586,12 +674,32 @@ p {
 }
 
 .overlay-surface[data-anchor-style='tBars'] .anchor-ring {
-  width: calc(var(--anchor-size) * 0.36);
-  height: calc(var(--anchor-size) * 0.36);
+  width: calc(var(--anchor-center-size) * 0.36);
+  height: calc(var(--anchor-center-size) * 0.36);
+  border-color: var(--anchor-center-color);
+  border-width: var(--anchor-center-thickness);
+  opacity: var(--anchor-center-opacity);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--anchor-center-color) 40%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--anchor-center-color) 20%, transparent);
 }
 
 .overlay-surface[data-anchor-style='tBars'] .anchor-t {
   display: block;
+  width: max(34px, calc(var(--anchor-outer-size) * 0.34));
+  height: max(34px, calc(var(--anchor-outer-size) * 0.34));
+  opacity: var(--anchor-outer-opacity);
+  filter: drop-shadow(0 0 calc(20px * var(--anchor-outer-glow)) var(--anchor-outer-color));
+}
+
+.overlay-surface[data-anchor-style='tBars'] .anchor-t::before {
+  height: var(--anchor-outer-thickness);
+  background: var(--anchor-outer-color);
+}
+
+.overlay-surface[data-anchor-style='tBars'] .anchor-t::after {
+  width: var(--anchor-outer-thickness);
+  background: var(--anchor-outer-color);
 }
 
 .overlay-surface[data-anchor-style='dotMatrix'] .anchor-horizontal,
@@ -603,12 +711,37 @@ p {
 }
 
 .overlay-surface[data-anchor-style='dotMatrix'] .anchor-ring {
-  width: calc(var(--anchor-size) * 0.4);
-  height: calc(var(--anchor-size) * 0.4);
+  width: calc(var(--anchor-center-size) * 0.4);
+  height: calc(var(--anchor-center-size) * 0.4);
+  border-color: var(--anchor-center-color);
+  border-width: var(--anchor-center-thickness);
+  opacity: var(--anchor-center-opacity);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--anchor-center-color) 40%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--anchor-center-color) 20%, transparent);
 }
 
 .overlay-surface[data-anchor-style='dotMatrix'] .anchor-dots {
   display: block;
+  width: max(10px, calc(var(--anchor-outer-thickness) * 4));
+  height: max(10px, calc(var(--anchor-outer-thickness) * 4));
+  background: var(--anchor-outer-color);
+  opacity: var(--anchor-outer-opacity);
+  filter: drop-shadow(0 0 calc(20px * var(--anchor-outer-glow)) var(--anchor-outer-color));
+}
+
+.overlay-surface[data-anchor-style='dotMatrix'] .anchor-dots-top,
+.overlay-surface[data-anchor-style='dotMatrix'] .anchor-dots-bottom {
+  box-shadow:
+    0 calc(var(--anchor-outer-size) * -0.14) 0 var(--anchor-outer-color),
+    0 calc(var(--anchor-outer-size) * 0.14) 0 var(--anchor-outer-color);
+}
+
+.overlay-surface[data-anchor-style='dotMatrix'] .anchor-dots-left,
+.overlay-surface[data-anchor-style='dotMatrix'] .anchor-dots-right {
+  box-shadow:
+    calc(var(--anchor-outer-size) * -0.14) 0 0 var(--anchor-outer-color),
+    calc(var(--anchor-outer-size) * 0.14) 0 0 var(--anchor-outer-color);
 }
 
 .anchor-corner-top-left {
@@ -645,6 +778,26 @@ p {
 .overlay-surface.is-disabled .anchor-t,
 .overlay-surface.is-disabled .anchor-dots {
   opacity: calc(var(--overlay-opacity) * 0.18);
+}
+
+.overlay-surface.is-disabled[data-anchor-style='fullGuide'] .anchor-horizontal,
+.overlay-surface.is-disabled[data-anchor-style='fullGuide'] .anchor-vertical {
+  opacity: calc(var(--anchor-guide-opacity) * 0.18);
+}
+
+.overlay-surface.is-disabled[data-anchor-style='fullGuide'] .anchor-ring,
+.overlay-surface.is-disabled[data-anchor-style='boxCircle'] .anchor-ring,
+.overlay-surface.is-disabled[data-anchor-style='edgeBars'] .anchor-ring,
+.overlay-surface.is-disabled[data-anchor-style='tBars'] .anchor-ring,
+.overlay-surface.is-disabled[data-anchor-style='dotMatrix'] .anchor-ring {
+  opacity: calc(var(--anchor-center-opacity) * 0.18);
+}
+
+.overlay-surface.is-disabled[data-anchor-style='boxCircle'] .anchor-box,
+.overlay-surface.is-disabled[data-anchor-style='edgeBars'] .anchor-box,
+.overlay-surface.is-disabled[data-anchor-style='tBars'] .anchor-t,
+.overlay-surface.is-disabled[data-anchor-style='dotMatrix'] .anchor-dots {
+  opacity: calc(var(--anchor-outer-opacity) * 0.18);
 }
 
 body[data-view='overlay'] {
