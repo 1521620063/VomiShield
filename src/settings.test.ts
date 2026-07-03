@@ -9,6 +9,7 @@ import {
   overlayCssVars,
   patchActivePartSettings,
   patchActiveStyleSettings,
+  previewOverlayCssVars,
   patchSettings,
   shortcutFromKeyboardEvent,
   type AnchorPart,
@@ -318,6 +319,35 @@ describe('settings helpers', () => {
       '--anchor-size': '240px',
       '--anchor-inset': '36px',
       '--edge-anchor-inset': '36px',
+    })
+  })
+
+  it('scales oversized anchors only for the settings preview', () => {
+    const settings = normalizeOverlaySettings({
+      ...DEFAULT_SETTINGS,
+      style: 'cornerBrackets',
+      styleSettings: {
+        ...DEFAULT_SETTINGS.styleSettings,
+        cornerBrackets: {
+          ...DEFAULT_SETTINGS.styleSettings.cornerBrackets,
+          parts: {
+            main: {
+              opacity: 0.72,
+              size: 640,
+              thickness: 2,
+              color: '#6ff0c2',
+              glow: 0.42,
+              inset: 320,
+            },
+          },
+        },
+      },
+    })
+
+    expect(overlayCssVars(settings)).not.toHaveProperty('--preview-scale')
+    expect(previewOverlayCssVars(settings)).toMatchObject({
+      '--anchor-size': '640px',
+      '--preview-scale': '0.5625',
     })
   })
 

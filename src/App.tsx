@@ -12,6 +12,7 @@ import {
   overlayCssVars,
   patchActivePartSettings,
   patchActiveStyleSettings,
+  previewOverlayCssVars,
   shortcutFromKeyboardEvent,
   type AnchorPart,
   type AnchorStyle,
@@ -181,6 +182,10 @@ function App() {
     () => overlayCssVars(normalizedSettings),
     [normalizedSettings],
   )
+  const previewVars = useMemo(
+    () => previewOverlayCssVars(normalizedSettings),
+    [normalizedSettings],
+  )
 
   if (isOverlay) {
     return <OverlaySurface settings={normalizedSettings} style={overlayVars} />
@@ -235,7 +240,7 @@ function App() {
         </div>
 
         <div className="preview-frame">
-          <OverlaySurface settings={normalizedSettings} style={overlayVars} preview />
+          <OverlaySurface settings={normalizedSettings} style={previewVars} preview />
         </div>
 
         <div className="controls">

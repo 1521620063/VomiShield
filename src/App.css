@@ -145,6 +145,7 @@ p {
 }
 
 .preview-frame {
+  position: relative;
   aspect-ratio: 16 / 9;
   margin: 24px 0 18px;
   overflow: hidden;
@@ -322,6 +323,7 @@ p {
   --anchor-edge-glow: var(--anchor-glow);
   --backdrop-opacity: 0;
   --anchor-offset-y: 0px;
+  --preview-scale: 1;
   --edge-anchor-inset: var(--anchor-inset);
   --outer-anchor-inset: max(28px, calc(var(--anchor-outer-size) * 0.18));
   position: fixed;
@@ -330,9 +332,13 @@ p {
 }
 
 .overlay-surface.is-preview {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100% / var(--preview-scale));
+  height: calc(100% / var(--preview-scale));
+  transform: translate(-50%, -50%) scale(var(--preview-scale));
+  transform-origin: center;
 }
 
 .overlay-backdrop {
@@ -671,10 +677,26 @@ p {
   height: calc(var(--anchor-outer-size) * 0.42);
 }
 
+.overlay-surface[data-anchor-style='edgeBars'] .anchor-box-top {
+  top: max(var(--outer-anchor-inset), calc(var(--anchor-outer-size) * 0.21));
+}
+
+.overlay-surface[data-anchor-style='edgeBars'] .anchor-box-bottom {
+  top: calc(100% - max(var(--outer-anchor-inset), calc(var(--anchor-outer-size) * 0.21)));
+}
+
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box-left,
 .overlay-surface[data-anchor-style='edgeBars'] .anchor-box-right {
   width: calc(var(--anchor-outer-size) * 0.42);
   height: max(calc(var(--anchor-outer-thickness) * 5), calc(var(--anchor-outer-size) * 0.1));
+}
+
+.overlay-surface[data-anchor-style='edgeBars'] .anchor-box-left {
+  left: max(var(--outer-anchor-inset), calc(var(--anchor-outer-size) * 0.21));
+}
+
+.overlay-surface[data-anchor-style='edgeBars'] .anchor-box-right {
+  left: calc(100% - max(var(--outer-anchor-inset), calc(var(--anchor-outer-size) * 0.21)));
 }
 
 .overlay-surface[data-anchor-style='tBars'] .anchor-horizontal,

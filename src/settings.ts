@@ -66,6 +66,7 @@ const DEFAULT_PART_VISUALS = {
 const DEFAULT_BACKDROP = 0
 const DEFAULT_SIZE_CONFIG = { min: 32, max: 320, step: 2 }
 const DEFAULT_INSET_CONFIG = { min: 0, max: 320, step: 2 }
+const PREVIEW_MAX_ANCHOR_SPAN = 360
 
 function partConfig(
   part: AnchorPart,
@@ -466,6 +467,31 @@ export function overlayCssVars(
     vars[`--anchor-${part}-glow`] = String(settings.glow)
     vars[`--anchor-${part}-inset`] = `${settings.inset}px`
   }
+
+  return vars
+}
+
+export function previewOverlayCssVars(
+  settings: OverlaySettingsInput,
+): CSSProperties & Record<string, string> {
+  const normalized = normalizeOverlaySettings(settings)
+  const styleSettings = activeAnchorStyleSettings(normalized)
+  const visualSpan = Math.max(
+    1,
+    ...Object.values(styleSettings.parts).flatMap((partSettings) =>
+      partSettings
+        ? [
+            partSettings.size,
+            partSettings.inset * 2,
+            Math.abs(normalized.offsetY) * 2 + partSettings.size,
+          ]
+        : [],
+    ),
+  )
+  const previewScale = Math.min(1, PREVIEW_MAX_ANCHOR_SPAN / visualSpan)
+  const vars = overlayCssVars(normalized)
+
+  vars['--preview-scale'] = previewScale.toFixed(4)
 
   return vars
 }

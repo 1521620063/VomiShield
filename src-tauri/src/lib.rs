@@ -136,7 +136,7 @@ fn overlay_shadow_override_for_current_platform() -> Option<bool> {
 
 fn overlay_shadow_override_for_target_os(target_os: &str) -> Option<bool> {
     match target_os {
-        "macos" => Some(false),
+        "macos" | "windows" => Some(false),
         _ => None,
     }
 }
@@ -370,9 +370,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn overlay_shadow_override_only_disables_macos_shadow() {
+    fn overlay_shadow_override_disables_transparent_window_shadow_on_supported_platforms() {
         assert_eq!(overlay_shadow_override_for_target_os("macos"), Some(false));
-        assert_eq!(overlay_shadow_override_for_target_os("windows"), None);
+        assert_eq!(overlay_shadow_override_for_target_os("windows"), Some(false));
         assert_eq!(overlay_shadow_override_for_target_os("linux"), None);
     }
 
