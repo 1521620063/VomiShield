@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_SETTINGS,
+  formatKeyboardShortcut,
   overlayRenderAttributes,
   overlayCssVars,
   patchSettings,
+  shortcutFromKeyboardEvent,
   type OverlaySettings,
 } from './settings'
 
@@ -20,6 +22,7 @@ describe('settings helpers', () => {
       backdrop: 0,
       offsetY: 0,
       language: 'zh',
+      shortcut: 'Ctrl+Alt+V',
     })
   })
 
@@ -92,5 +95,55 @@ describe('settings helpers', () => {
         }),
       ),
     ).toEqual(styles.map((style) => ({ 'data-anchor-style': style })))
+  })
+
+  it('formats stored shortcuts for display', () => {
+    expect(formatKeyboardShortcut('Ctrl+Alt+V')).toBe('Ctrl + Alt + V')
+    expect(formatKeyboardShortcut('Meta+Shift+Digit1')).toBe('Meta + Shift + 1')
+  })
+
+  it('records keyboard events as normalized shortcuts', () => {
+    const event = {
+      ctrlKey: true,
+      altKey: true,
+      shiftKey: false,
+      metaKey: false,
+      code: 'KeyB',
+      preventDefault() {},
+      stopPropagation() {},
+    } as unknown as React.KeyboardEvent
+
+    expect(shortcutFromKeyboardEvent(event)).toEqual({
+      shortcut: 'Ctrl+Alt+B',
+    })
+  })
+
+  it('rejects shortcut recordings without a modifier and primary key', () => {
+    const withoutModifier = {
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      code: 'KeyB',
+      preventDefault() {},
+      stopPropagation() {},
+    } as unknown as React.KeyboardEvent
+
+    const onlyModifier = {
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      code: 'ControlLeft',
+      preventDefault() {},
+      stopPropagation() {},
+    } as unknown as React.KeyboardEvent
+
+    expect(shortcutFromKeyboardEvent(withoutModifier)).toEqual({
+      error: 'missingModifier',
+    })
+    expect(shortcutFromKeyboardEvent(onlyModifier)).toEqual({
+      error: 'missingKey',
+    })
   })
 })

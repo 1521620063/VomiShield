@@ -12,7 +12,7 @@ VomiShield is a desktop visual-anchor overlay built with **Tauri + React + TypeS
 - 🎚️ Real-time controls: opacity, size, thickness, color, glow, background dimming, and vertical offset.
 - 🪟 Two-window architecture: the main window manages settings, while a transparent overlay window renders the visual anchor.
 - 💾 Local settings persistence: your overlay configuration is restored on the next launch.
-- ⌨️ Global shortcut: toggle the overlay quickly with `Ctrl + Alt + V`.
+- ⌨️ Global shortcut: toggle the overlay quickly with the default `Ctrl + Alt + V`, or customize it in settings.
 - 🧭 System tray menu: show settings, toggle the overlay, or quit the app.
 
 ## 🧰 Tech Stack
@@ -76,7 +76,7 @@ cargo test
 1. Run `npm run tauri:dev` to open the VomiShield settings window.
 2. Use the top-right power button to enable or disable the overlay.
 3. Choose an anchor style and adjust opacity, color, size, thickness, and other visual parameters.
-4. Press `Ctrl + Alt + V` to quickly toggle the overlay while playing.
+4. Press the default `Ctrl + Alt + V`, or record your own shortcut in settings, to quickly toggle the overlay while playing.
 5. Use the system tray menu to show settings, toggle the overlay, or quit the app.
 
 VomiShield is recommended for **windowed** or **borderless fullscreen** game modes. Exclusive fullscreen, anti-cheat restrictions, and platform-specific desktop composition behavior may affect overlay visibility.

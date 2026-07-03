@@ -27,4 +27,14 @@ describe('i18n', () => {
       }
     }
   })
+
+  it('provides shortcut recording labels and errors in each language', () => {
+    for (const { value: language } of LANGUAGE_OPTIONS) {
+      expect(UI_TEXT[language].fields.shortcut).not.toBe('')
+      expect(UI_TEXT[language].shortcutRecording).not.toBe('')
+      expect(UI_TEXT[language].shortcutErrors.missingModifier).not.toBe('')
+      expect(UI_TEXT[language].shortcutErrors.missingKey).not.toBe('')
+      expect(UI_TEXT[language].shortcutErrors.unsupportedKey).not.toBe('')
+    }
+  })
 })

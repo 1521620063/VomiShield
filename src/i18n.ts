@@ -24,6 +24,7 @@ type AnchorStyleLabels = {
 
 type FieldLabels = {
   anchorStyle: string
+  shortcut: string
   opacity: string
   color: string
   size: string
@@ -55,6 +56,13 @@ type UiText = {
   statuses: StatusLabels
   statusDetailSeparator: string
   shortcut: string
+  shortcutRecording: string
+  shortcutHint: string
+  shortcutErrors: {
+    missingModifier: string
+    missingKey: string
+    unsupportedKey: string
+  }
 }
 
 export const UI_TEXT = {
@@ -66,6 +74,7 @@ export const UI_TEXT = {
     powerOff: '关',
     fields: {
       anchorStyle: '锚点样式',
+      shortcut: '快捷键',
       opacity: '透明度',
       color: '颜色',
       size: '尺寸',
@@ -97,7 +106,14 @@ export const UI_TEXT = {
       syncFailed: '同步失败',
     },
     statusDetailSeparator: '：',
-    shortcut: '快捷键：Ctrl + Alt + V',
+    shortcut: '快捷键',
+    shortcutRecording: '按下新的快捷键',
+    shortcutHint: '至少包含 Ctrl、Alt、Shift 或 Cmd 之一',
+    shortcutErrors: {
+      missingModifier: '请至少包含一个修饰键',
+      missingKey: '请再按一个非修饰键',
+      unsupportedKey: '不支持这个按键',
+    },
   },
   en: {
     tagline: 'Stable visual anchors for windowed and borderless 3D games.',
@@ -107,6 +123,7 @@ export const UI_TEXT = {
     powerOff: 'Off',
     fields: {
       anchorStyle: 'Anchor style',
+      shortcut: 'Shortcut',
       opacity: 'Opacity',
       color: 'Color',
       size: 'Size',
@@ -138,7 +155,14 @@ export const UI_TEXT = {
       syncFailed: 'Sync failed',
     },
     statusDetailSeparator: ': ',
-    shortcut: 'Shortcut: Ctrl + Alt + V',
+    shortcut: 'Shortcut',
+    shortcutRecording: 'Press the new shortcut',
+    shortcutHint: 'Use at least one of Ctrl, Alt, Shift, or Cmd',
+    shortcutErrors: {
+      missingModifier: 'Use at least one modifier',
+      missingKey: 'Press one non-modifier key too',
+      unsupportedKey: 'This key is not supported',
+    },
   },
 } satisfies Record<Language, UiText>
 

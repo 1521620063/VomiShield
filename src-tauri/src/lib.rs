@@ -2,6 +2,7 @@ mod settings;
 
 use std::{
     path::PathBuf,
+    str::FromStr,
     sync::{Arc, Mutex},
 };
 
@@ -13,7 +14,7 @@ use tauri::{
     utils::config::Color,
     Emitter, Manager, State, WindowEvent, Wry,
 };
-use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 const SETTINGS_CHANGED_EVENT: &str = "settings-changed";
 const APP_ICON_BYTES: &[u8] = include_bytes!("../icons/icon.png");
@@ -75,12 +76,24 @@ fn persist_and_apply(
     state: &State<'_, AppState>,
     settings: OverlaySettings,
 ) -> Result<OverlaySettings, String> {
+    let previous = state
+        .settings
+        .lock()
+        .map(|settings| settings.clone())
+        .map_err(|error| error.to_string())?;
+
+    apply_global_shortcut(app, &previous.shortcut, &settings.shortcut)?;
+
+    if let Err(error) = save_to_path(&state.settings_path, &settings) {
+        let _ = apply_global_shortcut(app, &settings.shortcut, &previous.shortcut);
+        return Err(error);
+    }
+
     {
         let mut current = state.settings.lock().map_err(|error| error.to_string())?;
         *current = settings.clone();
     }
 
-    save_to_path(&state.settings_path, &settings)?;
     apply_overlay_visibility(app, settings.enabled);
     apply_tray_language(app, settings.language);
     app.emit(SETTINGS_CHANGED_EVENT, &settings)
@@ -239,26 +252,74 @@ fn tray_labels(language: Language) -> TrayLabels {
     }
 }
 
-fn register_shortcut(app: &tauri::App) -> tauri::Result<()> {
-    let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyV);
-
+fn install_shortcut_plugin(app: &tauri::App) -> tauri::Result<()> {
     app.handle().plugin(
         tauri_plugin_global_shortcut::Builder::new()
-            .with_handler(move |app, incoming, event| {
-                if incoming == &shortcut && event.state() == ShortcutState::Pressed {
+            .with_handler(|app, incoming, event| {
+                if event.state() == ShortcutState::Pressed {
                     if let Some(state) = app.try_state::<AppState>() {
-                        let _ = toggle_overlay(app.clone(), state);
+                        let is_configured_shortcut = state
+                            .settings
+                            .lock()
+                            .map(|settings| {
+                                shortcut_matches_configured(incoming, &settings.shortcut)
+                            })
+                            .unwrap_or(false);
+
+                        if is_configured_shortcut {
+                            let _ = toggle_overlay(app.clone(), state);
+                        }
                     }
                 }
             })
             .build(),
-    )?;
+    )
+}
 
-    if let Err(error) = app.global_shortcut().register(shortcut) {
-        log::warn!("failed to register global shortcut Ctrl+Alt+V: {error}");
+fn register_initial_shortcut(app: &tauri::AppHandle, shortcut: &str) {
+    if let Err(error) = register_global_shortcut(app, shortcut) {
+        log::warn!("failed to register global shortcut {shortcut}: {error}");
+    }
+}
+
+fn apply_global_shortcut(app: &tauri::AppHandle, previous: &str, next: &str) -> Result<(), String> {
+    if previous == next {
+        return Ok(());
     }
 
-    Ok(())
+    unregister_global_shortcut(app, previous);
+
+    match register_global_shortcut(app, next) {
+        Ok(()) => Ok(()),
+        Err(error) => {
+            let _ = register_global_shortcut(app, previous);
+            Err(format!(
+                "failed to register global shortcut {next}: {error}"
+            ))
+        }
+    }
+}
+
+fn register_global_shortcut(app: &tauri::AppHandle, shortcut: &str) -> Result<(), String> {
+    app.global_shortcut()
+        .register(shortcut)
+        .map_err(|error| error.to_string())
+}
+
+fn unregister_global_shortcut(app: &tauri::AppHandle, shortcut: &str) {
+    if app.global_shortcut().is_registered(shortcut) {
+        if let Err(error) = app.global_shortcut().unregister(shortcut) {
+            log::warn!("failed to unregister global shortcut {shortcut}: {error}");
+        }
+    }
+}
+
+fn shortcut_from_text(shortcut: &str) -> Result<Shortcut, String> {
+    Shortcut::from_str(shortcut).map_err(|error| error.to_string())
+}
+
+fn shortcut_matches_configured(incoming: &Shortcut, configured: &str) -> bool {
+    shortcut_from_text(configured).is_ok_and(|shortcut| incoming == &shortcut)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -290,7 +351,8 @@ pub fn run() {
 
             configure_overlay_window(app.handle(), settings.enabled);
             configure_main_window(app.handle());
-            register_shortcut(app)?;
+            install_shortcut_plugin(app)?;
+            register_initial_shortcut(app.handle(), &settings.shortcut);
 
             Ok(())
         })
@@ -312,5 +374,13 @@ mod tests {
         assert_eq!(overlay_shadow_override_for_target_os("macos"), Some(false));
         assert_eq!(overlay_shadow_override_for_target_os("windows"), None);
         assert_eq!(overlay_shadow_override_for_target_os("linux"), None);
+    }
+
+    #[test]
+    fn configured_shortcut_matches_registered_shortcut_aliases() {
+        let incoming = shortcut_from_text("control+alt+KeyV").expect("parse incoming shortcut");
+
+        assert!(shortcut_matches_configured(&incoming, "Ctrl+Alt+V"));
+        assert!(!shortcut_matches_configured(&incoming, "Ctrl+Shift+V"));
     }
 }

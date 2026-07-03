@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import './App.css'
 import {
   DEFAULT_SETTINGS,
+  formatKeyboardShortcut,
   overlayRenderAttributes,
   overlayCssVars,
+  shortcutFromKeyboardEvent,
   type AnchorStyle,
+  type KeyboardShortcutEvent,
   type OverlaySettings,
 } from './settings'
 import {
@@ -54,6 +57,10 @@ function App() {
   const isOverlay = window.location.hash === '#/overlay'
   const [settings, setSettings] = useState<OverlaySettings>(DEFAULT_SETTINGS)
   const [status, setStatus] = useState<UiStatus>({ kind: 'ready' })
+  const [isRecordingShortcut, setIsRecordingShortcut] = useState(false)
+  const [shortcutError, setShortcutError] = useState<
+    keyof ReturnType<typeof getUiText>['shortcutErrors'] | undefined
+  >()
   const settingsCommitter = useMemo(
     () =>
       createSettingsCommitter({
@@ -93,13 +100,56 @@ function App() {
     document.documentElement.lang = settings.language === 'zh' ? 'zh-CN' : 'en'
   }, [settings.language])
 
-  const commitPatch = (patch: Partial<OverlaySettings>) => {
+  const commitPatch = useCallback((patch: Partial<OverlaySettings>) => {
     settingsCommitter.commitPatch(patch)
-  }
+  }, [settingsCommitter])
 
   const setLanguage = (language: Language) => {
     commitPatch({ language })
   }
+
+  const recordShortcut = useCallback(
+    (
+      event: KeyboardShortcutEvent &
+        Pick<globalThis.KeyboardEvent, 'key' | 'preventDefault' | 'stopPropagation'>,
+    ) => {
+      if (!isRecordingShortcut) {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (event.key === 'Escape') {
+        setIsRecordingShortcut(false)
+        setShortcutError(undefined)
+        return
+      }
+
+      const result = shortcutFromKeyboardEvent(event)
+
+      if ('shortcut' in result) {
+        setIsRecordingShortcut(false)
+        setShortcutError(undefined)
+        commitPatch({ shortcut: result.shortcut })
+      } else {
+        setShortcutError(result.error)
+      }
+    },
+    [commitPatch, isRecordingShortcut],
+  )
+
+  useEffect(() => {
+    if (!isRecordingShortcut) {
+      return
+    }
+
+    window.addEventListener('keydown', recordShortcut, { capture: true })
+
+    return () => {
+      window.removeEventListener('keydown', recordShortcut, { capture: true })
+    }
+  }, [isRecordingShortcut, recordShortcut])
 
   const overlayVars = useMemo(() => overlayCssVars(settings), [settings])
 
@@ -174,6 +224,19 @@ function App() {
             </select>
           </label>
 
+          <ShortcutField
+            label={text.fields.shortcut}
+            value={settings.shortcut}
+            recording={isRecordingShortcut}
+            recordingLabel={text.shortcutRecording}
+            hint={text.shortcutHint}
+            error={shortcutError ? text.shortcutErrors[shortcutError] : undefined}
+            onStartRecording={() => {
+              setIsRecordingShortcut(true)
+              setShortcutError(undefined)
+            }}
+          />
+
           <RangeField
             label={text.fields.opacity}
             min={0.05}
@@ -246,7 +309,11 @@ function App() {
 
         <footer className="footer-row">
           <span>{formatStatus(status, text)}</span>
-          <span>{text.shortcut}</span>
+          <span>
+            {text.shortcut}
+            {text.statusDetailSeparator}
+            {formatKeyboardShortcut(settings.shortcut)}
+          </span>
         </footer>
       </section>
     </main>
@@ -261,6 +328,43 @@ type RangeFieldProps = {
   value: number
   suffix: string
   onChange: (value: number) => void
+}
+
+type ShortcutFieldProps = {
+  label: string
+  value: string
+  recording: boolean
+  recordingLabel: string
+  hint: string
+  error?: string
+  onStartRecording: () => void
+}
+
+function ShortcutField({
+  label,
+  value,
+  recording,
+  recordingLabel,
+  hint,
+  error,
+  onStartRecording,
+}: ShortcutFieldProps) {
+  return (
+    <label className="field shortcut-field">
+      <span>{label}</span>
+      <button
+        type="button"
+        className={recording ? 'shortcut-recorder is-recording' : 'shortcut-recorder'}
+        aria-pressed={recording}
+        onClick={onStartRecording}
+      >
+        {recording ? recordingLabel : formatKeyboardShortcut(value)}
+      </button>
+      <small className={error ? 'shortcut-message is-error' : 'shortcut-message'}>
+        {error ?? hint}
+      </small>
+    </label>
+  )
 }
 
 function RangeField({
@@ -293,7 +397,7 @@ function RangeField({
 
 type OverlaySurfaceProps = {
   settings: OverlaySettings
-  style: React.CSSProperties
+  style: CSSProperties
   preview?: boolean
 }
 

@@ -1,6 +1,9 @@
-use std::{fs, path::Path};
+use std::{fs, path::Path, str::FromStr};
 
 use serde::{Deserialize, Serialize};
+use tauri_plugin_global_shortcut::Shortcut;
+
+pub const DEFAULT_SHORTCUT: &str = "Ctrl+Alt+V";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,6 +45,8 @@ pub struct OverlaySettings {
     pub offset_y: i16,
     #[serde(default = "default_language")]
     pub language: Language,
+    #[serde(default = "default_shortcut")]
+    pub shortcut: String,
 }
 
 impl Default for OverlaySettings {
@@ -57,6 +62,7 @@ impl Default for OverlaySettings {
             backdrop: 0.0,
             offset_y: 0,
             language: Language::Zh,
+            shortcut: DEFAULT_SHORTCUT.to_string(),
         }
     }
 }
@@ -65,6 +71,11 @@ impl OverlaySettings {
     pub fn validated(mut self) -> Result<Self, String> {
         if !is_hex_color(&self.color) {
             return Err(format!("invalid hex color: {}", self.color));
+        }
+
+        self.shortcut = self.shortcut.trim().to_string();
+        if !is_valid_shortcut(&self.shortcut) {
+            return Err(format!("invalid shortcut: {}", self.shortcut));
         }
 
         self.opacity = self.opacity.clamp(0.05, 1.0);
@@ -103,12 +114,53 @@ fn is_hex_color(value: &str) -> bool {
     hex.len() == 6 && hex.chars().all(|char| char.is_ascii_hexdigit())
 }
 
+pub fn is_valid_shortcut(value: &str) -> bool {
+    if Shortcut::from_str(value).is_err() {
+        return false;
+    }
+
+    let mut has_modifier = false;
+    let mut main_key_count = 0;
+
+    for token in value.split('+').map(str::trim) {
+        if is_shortcut_modifier(token) {
+            has_modifier = true;
+        } else {
+            main_key_count += 1;
+        }
+    }
+
+    has_modifier && main_key_count == 1
+}
+
+fn is_shortcut_modifier(token: &str) -> bool {
+    matches!(
+        token.to_ascii_uppercase().as_str(),
+        "ALT"
+            | "OPTION"
+            | "CONTROL"
+            | "CTRL"
+            | "COMMAND"
+            | "CMD"
+            | "SUPER"
+            | "SHIFT"
+            | "COMMANDORCONTROL"
+            | "COMMANDORCTRL"
+            | "CMDORCTRL"
+            | "CMDORCONTROL"
+    )
+}
+
 fn default_glow() -> f32 {
     0.42
 }
 
 fn default_language() -> Language {
     Language::Zh
+}
+
+fn default_shortcut() -> String {
+    DEFAULT_SHORTCUT.to_string()
 }
 
 #[cfg(test)]
@@ -129,6 +181,7 @@ mod tests {
         assert_eq!(settings.backdrop, 0.0);
         assert_eq!(settings.offset_y, 0);
         assert_eq!(settings.language, Language::Zh);
+        assert_eq!(settings.shortcut, "Ctrl+Alt+V");
     }
 
     #[test]
@@ -144,6 +197,7 @@ mod tests {
             backdrop: 9.0,
             offset_y: 999,
             language: Language::Zh,
+            shortcut: "Ctrl+Alt+V".to_string(),
         }
         .validated()
         .expect("settings should be valid after numeric clamping");
@@ -167,6 +221,21 @@ mod tests {
     }
 
     #[test]
+    fn validation_rejects_shortcuts_without_modifier_or_key() {
+        let without_modifier = OverlaySettings {
+            shortcut: "KeyV".to_string(),
+            ..OverlaySettings::default()
+        };
+        let only_modifier = OverlaySettings {
+            shortcut: "Ctrl".to_string(),
+            ..OverlaySettings::default()
+        };
+
+        assert!(without_modifier.validated().is_err());
+        assert!(only_modifier.validated().is_err());
+    }
+
+    #[test]
     fn settings_round_trip_through_json() {
         let settings = OverlaySettings {
             enabled: false,
@@ -179,6 +248,7 @@ mod tests {
             backdrop: 0.2,
             offset_y: -80,
             language: Language::En,
+            shortcut: "Ctrl+Shift+B".to_string(),
         };
 
         let json = serde_json::to_string(&settings).expect("serialize settings");
@@ -204,6 +274,7 @@ mod tests {
         assert_eq!(decoded.backdrop, 0.0);
         assert_eq!(decoded.offset_y, 0);
         assert_eq!(decoded.language, Language::Zh);
+        assert_eq!(decoded.shortcut, "Ctrl+Alt+V");
     }
 
     #[test]
