@@ -78,6 +78,10 @@ describe('settings helpers', () => {
       'horizontal',
       'vertical',
       'cornerBrackets',
+      'boxCircle',
+      'edgeBars',
+      'tBars',
+      'dotMatrix',
     ] as const
 
     expect(

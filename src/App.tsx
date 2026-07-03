@@ -34,6 +34,10 @@ const ANCHOR_STYLE_VALUES: AnchorStyle[] = [
   'horizontal',
   'vertical',
   'cornerBrackets',
+  'boxCircle',
+  'edgeBars',
+  'tBars',
+  'dotMatrix',
 ]
 
 type SimpleStatusKind =
@@ -318,6 +322,18 @@ function OverlaySurface({ settings, style, preview = false }: OverlaySurfaceProp
       <div className="anchor-corner anchor-corner-top-right" />
       <div className="anchor-corner anchor-corner-bottom-left" />
       <div className="anchor-corner anchor-corner-bottom-right" />
+      <div className="anchor-box anchor-box-top" />
+      <div className="anchor-box anchor-box-right" />
+      <div className="anchor-box anchor-box-bottom" />
+      <div className="anchor-box anchor-box-left" />
+      <div className="anchor-t anchor-t-top" />
+      <div className="anchor-t anchor-t-right" />
+      <div className="anchor-t anchor-t-bottom" />
+      <div className="anchor-t anchor-t-left" />
+      <div className="anchor-dots anchor-dots-top" />
+      <div className="anchor-dots anchor-dots-right" />
+      <div className="anchor-dots anchor-dots-bottom" />
+      <div className="anchor-dots anchor-dots-left" />
     </div>
   )
 }

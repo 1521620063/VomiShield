@@ -16,6 +16,10 @@ type AnchorStyleLabels = {
   horizontal: string
   vertical: string
   cornerBrackets: string
+  boxCircle: string
+  edgeBars: string
+  tBars: string
+  dotMatrix: string
 }
 
 type FieldLabels = {
@@ -77,6 +81,10 @@ export const UI_TEXT = {
       horizontal: '水平线',
       vertical: '垂直线',
       cornerBrackets: '角标框',
+      boxCircle: '方块圆环',
+      edgeBars: '四向长条',
+      tBars: 'T 形参考',
+      dotMatrix: '点阵参考',
     },
     statuses: {
       ready: '就绪',
@@ -114,6 +122,10 @@ export const UI_TEXT = {
       horizontal: 'Horizontal line',
       vertical: 'Vertical line',
       cornerBrackets: 'Corner brackets',
+      boxCircle: 'Box and circle',
+      edgeBars: 'Edge bars',
+      tBars: 'T-bar target',
+      dotMatrix: 'Dot matrix',
     },
     statuses: {
       ready: 'Ready',

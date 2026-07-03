@@ -11,6 +11,10 @@ pub enum AnchorStyle {
     Horizontal,
     Vertical,
     CornerBrackets,
+    BoxCircle,
+    EdgeBars,
+    TBars,
+    DotMatrix,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

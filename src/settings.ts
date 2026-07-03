@@ -8,6 +8,10 @@ export type AnchorStyle =
   | 'horizontal'
   | 'vertical'
   | 'cornerBrackets'
+  | 'boxCircle'
+  | 'edgeBars'
+  | 'tBars'
+  | 'dotMatrix'
 
 export type OverlaySettings = {
   enabled: boolean

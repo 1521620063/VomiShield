@@ -9,6 +9,10 @@ const ANCHOR_STYLES: AnchorStyle[] = [
   'horizontal',
   'vertical',
   'cornerBrackets',
+  'boxCircle',
+  'edgeBars',
+  'tBars',
+  'dotMatrix',
 ]
 
 describe('i18n', () => {
