@@ -106,3 +106,7 @@ VomiShield is recommended for **windowed** or **borderless fullscreen** game mod
 - 🍎 Polish macOS packaging and click-through behavior.
 - 🎨 Add more low-distraction anchor styles and presets.
 - 🧪 Expand end-to-end verification for tray actions, shortcuts, and persistence flows.
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
